@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 # Import the database initializer and models
 from core.config import settings
 from db.database import create_db_and_tables
-from db.models import LogisticsRecord
+from db.models import BillOfLading
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,6 +28,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from api.endpoints import upload
+
+app.include_router(upload.router, prefix="/api", tags=["upload"])
 
 @app.get("/")
 def read_root():
