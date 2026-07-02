@@ -1,0 +1,18 @@
+# Python Environment
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Database (非常重要：絕對不要把資料庫推上 GitHub)
+*.db
+*.sqlite3
+
+# Environment Variables (非常重要：絕對不要把 OpenAI Key 推上 GitHub)
+.env
+.env.*
+
+# VS Code / IDE
+.vscode/*
+!.vscode/settings.json
+.idea/
