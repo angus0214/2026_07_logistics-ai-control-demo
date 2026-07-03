@@ -24,6 +24,15 @@ const fetchData = async () => {
   }
 }
 
+const parseModifiedFields = (jsonStr: string) => {
+  if (!jsonStr) return []
+  try {
+    return JSON.parse(jsonStr)
+  } catch (e) {
+    return []
+  }
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -99,6 +108,7 @@ onMounted(() => {
               <tr>
                 <th class="px-6 py-4 font-semibold w-16 whitespace-nowrap">ID</th>
                 <th class="px-6 py-4 font-semibold w-24 whitespace-nowrap">提單 ID</th>
+                <th class="px-6 py-4 font-semibold w-48 whitespace-nowrap">修改欄位</th>
                 <th class="px-6 py-4 font-semibold w-32 whitespace-nowrap">原始圖片</th>
                 <th class="px-6 py-4 font-semibold w-[400px]">AI 原始輸出 (Raw)</th>
                 <th class="px-6 py-4 font-semibold w-[400px]">OP 修正輸出 (Corrected)</th>
@@ -109,6 +119,16 @@ onMounted(() => {
               <tr v-for="bc in badCases" :key="bc.id" class="hover:bg-zinc-800/20 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">{{ bc.id }}</td>
                 <td class="px-6 py-4 text-amber-400 font-medium whitespace-nowrap">#{{ bc.bl_id }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    <template v-if="parseModifiedFields(bc.modified_fields).length > 0">
+                      <span v-for="field in parseModifiedFields(bc.modified_fields)" :key="field" class="px-2 py-0.5 rounded text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        {{ field }}
+                      </span>
+                    </template>
+                    <span v-else class="text-zinc-500 text-[10px]">無紀錄</span>
+                  </div>
+                </td>
                 <td class="px-6 py-4">
                   <div class="w-20 h-20 rounded border border-zinc-700 bg-zinc-950 overflow-hidden relative group">
                     <img v-if="bc.image_base64" :src="'data:image/jpeg;base64,' + bc.image_base64" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" title="原始提單圖片" />

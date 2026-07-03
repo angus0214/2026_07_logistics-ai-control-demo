@@ -20,8 +20,9 @@ class BadCaseFeedback(SQLModel, table=True):
     __tablename__ = "bad_cases"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    bl_id: Optional[int] = Field(default=None, description="關聯的提單 ID")
-    image_base64: str = Field(description="原始圖片")
-    ai_raw_output: str = Field(description="AI 給的原始 JSON 格式字串")
-    human_corrected_output: str = Field(description="OP 修正後的 JSON 格式字串")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    bl_id: int = Field(foreign_key="bills_of_lading.id", description="關聯的提單ID")
+    ai_raw_output: str = Field(description="AI 原始預測的 JSON 字串")
+    human_corrected_output: str = Field(description="人員手動修正後的 JSON 字串")
+    modified_fields: str = Field(default="[]", description="被修改的欄位清單 (JSON 字串陣列)")
+    image_base64: str = Field(description="提單原始圖片的 Base64")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="建立時間")

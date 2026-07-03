@@ -40,6 +40,7 @@ class SaveBillOfLadingRequest(BaseModel):
     is_bad_case: bool = False
     ai_raw_output: dict | None = None
     image_base64: str | None = None
+    modified_fields: list[str] | None = None
 
 @router.post("/save_bl")
 def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Depends(get_session)):
@@ -63,7 +64,8 @@ def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Dep
                 bl_id=bl_record.id,
                 image_base64=request.image_base64,
                 ai_raw_output=json.dumps(request.ai_raw_output, ensure_ascii=False),
-                human_corrected_output=json.dumps(request.data, ensure_ascii=False)
+                human_corrected_output=json.dumps(request.data, ensure_ascii=False),
+                modified_fields=json.dumps(request.modified_fields, ensure_ascii=False) if request.modified_fields else "[]"
             )
             session.add(bad_case)
             session.commit()

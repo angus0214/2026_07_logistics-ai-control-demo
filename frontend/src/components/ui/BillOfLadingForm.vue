@@ -26,7 +26,7 @@ const attemptSubmit = () => {
 }
 
 const checkIsBadCase = () => {
-  if (!isAiParsed.value || !aiRawData.value) return false
+  if (!isAiParsed.value || !aiRawData.value) return { isBadCase: false, modifiedFields: [] }
   
   // 比對兩者是否完全一致 (不包含 suspicious_fields)
   const current = { ...ocrData.value }
@@ -34,7 +34,17 @@ const checkIsBadCase = () => {
   delete (current as any).suspicious_fields
   delete (original as any).suspicious_fields
   
-  return JSON.stringify(current) !== JSON.stringify(original)
+  const modifiedFields: string[] = []
+  for (const key in current) {
+    if (current[key as keyof typeof current] !== original[key as keyof typeof original]) {
+      modifiedFields.push(key)
+    }
+  }
+  
+  return {
+    isBadCase: modifiedFields.length > 0,
+    modifiedFields
+  }
 }
 
 const confirmSubmit = async () => {
@@ -45,13 +55,14 @@ const confirmSubmit = async () => {
     const { suspicious_fields, ...submitData } = ocrData.value
     
     // 自動判定是否為 Bad Case (有任何手動修改)
-    const isBadCase = checkIsBadCase()
+    const { isBadCase, modifiedFields } = checkIsBadCase()
 
     const payload = {
       data: submitData,
       is_bad_case: isBadCase,
       ai_raw_output: isBadCase ? aiRawData.value : null,
-      image_base64: isBadCase ? imageBase64.value : null
+      image_base64: isBadCase ? imageBase64.value : null,
+      modified_fields: isBadCase ? modifiedFields : null
     }
 
     const response = await fetch('http://127.0.0.1:8000/api/save_bl', {
