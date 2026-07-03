@@ -18,17 +18,24 @@ export const useBlStore = defineStore('bl', () => {
   })
 
   const ocrData = ref<OcrResult>(getEmptyData())
+  const aiRawData = ref<OcrResult | null>(null) // 儲存最原始的 AI 答案
   const previewUrl = ref<string | null>(null)
+  const imageBase64 = ref<string | null>(null) // 用於回報 Bad Case
   const isUploading = ref(false)
   const isAiParsed = ref(false)
 
   const setOcrData = (data: OcrResult) => {
-    ocrData.value = data
+    ocrData.value = { ...data }
+    aiRawData.value = JSON.parse(JSON.stringify(data)) // Deep copy
     isAiParsed.value = true
   }
 
   const setPreviewUrl = (url: string) => {
     previewUrl.value = url
+  }
+
+  const setImageBase64 = (base64: string) => {
+    imageBase64.value = base64
   }
 
   const setUploading = (status: boolean) => {
@@ -37,18 +44,23 @@ export const useBlStore = defineStore('bl', () => {
 
   const reset = () => {
     ocrData.value = getEmptyData()
+    aiRawData.value = null
     previewUrl.value = null
+    imageBase64.value = null
     isUploading.value = false
     isAiParsed.value = false
   }
 
   return {
     ocrData,
+    aiRawData,
     previewUrl,
+    imageBase64,
     isUploading,
     isAiParsed,
     setOcrData,
     setPreviewUrl,
+    setImageBase64,
     setUploading,
     reset
   }

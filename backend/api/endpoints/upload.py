@@ -32,19 +32,41 @@ async def upload_bill_of_lading(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR 解析失敗: {str(e)}")
 
+from pydantic import BaseModel
+import json
+
+class SaveBillOfLadingRequest(BaseModel):
+    data: dict
+    is_bad_case: bool = False
+    ai_raw_output: dict | None = None
+    image_base64: str | None = None
+
 @router.post("/save_bl")
-def save_bill_of_lading(data: dict, session: Session = Depends(get_session)):
+def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Depends(get_session)):
     """
     前端人工覆核確認後，將最終資料寫入 SQLite。
+    若被判定為 Bad Case (有修改過)，一併存入 BadCaseFeedback。
     """
     try:
         # 將前端傳來的 JSON 轉為 SQLModel 物件
-        bl_record = BillOfLading(**data)
+        bl_record = BillOfLading(**request.data)
         bl_record.is_verified = True  # 標記為已覆核
         
         session.add(bl_record)
         session.commit()
         session.refresh(bl_record)
+        
+        # 處理 Bad Case
+        if request.is_bad_case and request.image_base64 and request.ai_raw_output:
+            from db.models import BadCaseFeedback
+            bad_case = BadCaseFeedback(
+                bl_id=bl_record.id,
+                image_base64=request.image_base64,
+                ai_raw_output=json.dumps(request.ai_raw_output, ensure_ascii=False),
+                human_corrected_output=json.dumps(request.data, ensure_ascii=False)
+            )
+            session.add(bad_case)
+            session.commit()
         
         return {"status": "success", "id": bl_record.id}
     except Exception as e:

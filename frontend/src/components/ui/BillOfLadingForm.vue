@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 import { LucideCheckCircle2, LucideAlertTriangle, LucideLoader2 } from '@lucide/vue'
 
 const blStore = useBlStore()
-const { ocrData, isUploading, isAiParsed } = storeToRefs(blStore)
+const { ocrData, isUploading, isAiParsed, aiRawData, imageBase64 } = storeToRefs(blStore)
 
 const isConfident = computed(() => {
   return ocrData.value.confidence_score >= 80 && ocrData.value.suspicious_fields.length === 0
@@ -25,11 +25,53 @@ const attemptSubmit = () => {
   showConfirmModal.value = true
 }
 
+const checkIsBadCase = () => {
+  if (!isAiParsed.value || !aiRawData.value) return false
+  
+  // 比對兩者是否完全一致 (不包含 suspicious_fields)
+  const current = { ...ocrData.value }
+  const original = { ...aiRawData.value }
+  delete (current as any).suspicious_fields
+  delete (original as any).suspicious_fields
+  
+  return JSON.stringify(current) !== JSON.stringify(original)
+}
+
 const confirmSubmit = async () => {
   showConfirmModal.value = false
-  // 實務上這裡會呼叫 POST /api/save_bl
-  alert('資料已成功寫入資料庫！ (Demo)')
-  blStore.reset()
+  
+  try {
+    // 移除 suspicious_fields 避免後端 DB Model 不認識這個欄位
+    const { suspicious_fields, ...submitData } = ocrData.value
+    
+    // 自動判定是否為 Bad Case (有任何手動修改)
+    const isBadCase = checkIsBadCase()
+
+    const payload = {
+      data: submitData,
+      is_bad_case: isBadCase,
+      ai_raw_output: isBadCase ? aiRawData.value : null,
+      image_base64: isBadCase ? imageBase64.value : null
+    }
+
+    const response = await fetch('http://127.0.0.1:8000/api/save_bl', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      throw new Error('API 回應錯誤')
+    }
+
+    alert(`資料已成功寫入資料庫！ (已從 SQLite 紀錄)\n${isBadCase ? '✅ 已自動抓取 Bad Case 回傳供未來訓練' : '未發生人工修改，完美命中！'}`)
+    blStore.reset()
+  } catch (error) {
+    console.error('寫入失敗:', error)
+    alert('寫入失敗，請確認後端是否正常運作中')
+  }
 }
 </script>
 

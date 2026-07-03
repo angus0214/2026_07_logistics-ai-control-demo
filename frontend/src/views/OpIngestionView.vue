@@ -15,9 +15,16 @@ const handleFileSelected = async (file: File) => {
     return
   }
 
-  // 1. 產生預覽圖 URL
+  // 1. 產生預覽圖 URL 與 Base64 (供 Bad Case 使用)
   const objectUrl = URL.createObjectURL(file)
   blStore.setPreviewUrl(objectUrl)
+  
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = () => {
+    const base64String = (reader.result as string).split(',')[1]
+    blStore.setImageBase64(base64String)
+  }
   
   // 2. 開始上傳與 OCR
   blStore.setUploading(true)
