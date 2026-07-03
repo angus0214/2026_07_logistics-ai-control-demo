@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, type Ref } from 'vue'
 import { LucideFileText, LucideLayoutDashboard, LucideShip, LucideDatabase } from '@lucide/vue'
 
 defineProps({
@@ -10,7 +10,7 @@ defineProps({
 })
 
 // 從 App.vue 拿取全域的頁面狀態
-const currentView = inject('currentView') as { value: string }
+const currentView = inject('currentView') as Ref<string>
 </script>
 
 <template>
