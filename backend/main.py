@@ -9,7 +9,7 @@ from db.models import BillOfLading
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 正在啟動伺服器，並初始化資料庫 (SQLModel)...")
+    print("Server started, initializing database (SQLModel)...")
     create_db_and_tables()
     yield
 
