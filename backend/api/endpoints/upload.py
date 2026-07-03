@@ -81,3 +81,13 @@ def get_bill_of_lading_list(session: Session = Depends(get_session)):
     statement = select(BillOfLading).order_by(BillOfLading.created_at.desc())
     results = session.exec(statement).all()
     return results
+
+@router.get("/bad_cases")
+def get_bad_cases_list(session: Session = Depends(get_session)):
+    """
+    取得所有 Bad Case 列表，供資料飛輪與工程團隊檢視。
+    """
+    from db.models import BadCaseFeedback
+    statement = select(BadCaseFeedback).order_by(BadCaseFeedback.created_at.desc())
+    results = session.exec(statement).all()
+    return results

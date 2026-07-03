@@ -55,14 +55,16 @@ const handleFileSelected = async (file: File) => {
 <template>
   <DashboardLayout>
     <template #center>
-      <!-- 上傳區 (縮小一點放上方) -->
-      <div class="mb-6 animate-in fade-in zoom-in-95 duration-300">
-        <FileUploadZone @file-selected="handleFileSelected" />
-      </div>
+      <div class="max-w-2xl mx-auto space-y-6 h-full">
+        <!-- 上傳區 (縮小一點放上方) -->
+        <div class="mb-6 animate-in fade-in zoom-in-95 duration-300">
+          <FileUploadZone @file-selected="handleFileSelected" />
+        </div>
 
-      <!-- 複雜表單區 (永遠顯示，讓 OP 可手動輸入) -->
-      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-6 shadow-xl">
-        <BillOfLadingForm />
+        <!-- 複雜表單區 (永遠顯示，讓 OP 可手動輸入) -->
+        <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-6 shadow-xl">
+          <BillOfLadingForm />
+        </div>
       </div>
     </template>
 

@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { LucideFileText, LucideLayoutDashboard, LucideShip } from '@lucide/vue'
+import { inject } from 'vue'
+import { LucideFileText, LucideLayoutDashboard, LucideShip, LucideDatabase } from '@lucide/vue'
+
+defineProps({
+  hideRightSidebar: {
+    type: Boolean,
+    default: false
+  }
+})
+
+// 從 App.vue 拿取全域的頁面狀態
+const currentView = inject('currentView') as { value: string }
 </script>
 
 <template>
@@ -15,13 +26,25 @@ import { LucideFileText, LucideLayoutDashboard, LucideShip } from '@lucide/vue'
         </h1>
       </div>
       <nav class="flex-1 p-4 space-y-1">
-        <div class="px-3 py-2.5 rounded-lg bg-zinc-800/50 text-emerald-400 font-medium cursor-pointer flex items-center gap-3 transition-all border border-zinc-700/50 shadow-sm">
+        <div 
+          @click="currentView = 'op'"
+          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
+          :class="currentView === 'op' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
+        >
            <LucideFileText class="w-4 h-4" />
            OP 進件作業
         </div>
-        <div class="px-3 py-2.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30 cursor-pointer flex items-center gap-3 transition-colors">
-           <LucideLayoutDashboard class="w-4 h-4" />
-           主管戰情室
+        <div 
+          @click="currentView = 'db'"
+          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
+          :class="currentView === 'db' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
+        >
+           <LucideDatabase class="w-4 h-4" />
+           DB 資料庫後台
+        </div>
+        <div class="px-3 py-2.5 rounded-lg text-zinc-500 cursor-not-allowed flex items-center gap-3 transition-colors mt-4">
+           <LucideLayoutDashboard class="w-4 h-4 opacity-50" />
+           主管戰情室 (即將開放)
         </div>
       </nav>
       <div class="p-4 border-t border-zinc-800/60 text-xs text-zinc-500 flex items-center justify-between">
@@ -36,14 +59,14 @@ import { LucideFileText, LucideLayoutDashboard, LucideShip } from '@lucide/vue'
         <h2 class="text-base font-semibold tracking-wide text-zinc-200">文件進件與 OCR 覆核</h2>
       </header>
       <div class="flex-1 overflow-y-auto p-8">
-        <div class="max-w-2xl mx-auto space-y-6">
+        <div class="w-full h-full">
           <slot name="center"></slot>
         </div>
       </div>
     </main>
 
     <!-- Right Image Preview Area -->
-    <aside class="w-[500px] flex-shrink-0 border-l border-zinc-800/60 bg-zinc-950 flex flex-col z-10 shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]">
+    <aside v-if="!hideRightSidebar" class="w-[500px] flex-shrink-0 border-l border-zinc-800/60 bg-zinc-950 flex flex-col z-10 shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]">
       <header class="h-16 border-b border-zinc-800/60 flex items-center px-6 justify-between bg-zinc-950">
         <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
