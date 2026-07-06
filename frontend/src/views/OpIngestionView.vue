@@ -5,6 +5,7 @@ import BillOfLadingForm from '@/components/ui/BillOfLadingForm.vue'
 import ZoomableImage from '@/components/ui/ZoomableImage.vue'
 import { useBlStore } from '@/stores/bl_store'
 import { storeToRefs } from 'pinia'
+import OpCopilotDrawer from '@/components/ui/OpCopilotDrawer.vue'
 
 const blStore = useBlStore()
 const { ocrData, previewUrl, isUploading } = storeToRefs(blStore)
@@ -74,4 +75,6 @@ const handleFileSelected = async (file: File) => {
       </div>
     </template>
   </DashboardLayout>
+
+  <OpCopilotDrawer />
 </template>
