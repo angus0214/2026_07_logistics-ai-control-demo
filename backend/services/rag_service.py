@@ -88,3 +88,16 @@ def get_rag_response(query: str) -> str:
         return "RAG 引擎尚未初始化或找不到知識庫文件。"
     
     return _rag_chain.invoke(query)
+
+def stream_rag_response(query: str):
+    """
+    以 Streaming 形式回傳 AI 生成的文字片段 (Chunks)。
+    交由 FastAPI StreamingResponse 傳遞給前端。
+    """
+    if not _rag_chain:
+        yield "RAG 引擎尚未初始化或找不到知識庫文件。"
+        return
+    
+    # .stream() 會回傳一個產生器，隨著 LLM 運算逐字產出
+    for chunk in _rag_chain.stream(query):
+        yield chunk

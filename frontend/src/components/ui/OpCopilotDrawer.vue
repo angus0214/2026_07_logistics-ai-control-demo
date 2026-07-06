@@ -23,8 +23,9 @@ const sendMessage = async () => {
   inputMessage.value = ''
   isLoading.value = true
   
-  // 模擬思考中
-  messages.value.push({ role: 'assistant', content: '思考中...' })
+  // 加入空內容的 assistant 氣泡，準備接收串流字元
+  messages.value.push({ role: 'assistant', content: '' })
+  const assistantMsgIndex = messages.value.length - 1
   
   try {
     const response = await fetch('http://127.0.0.1:8000/api/chat/op_rag', {
@@ -33,12 +34,23 @@ const sendMessage = async () => {
       body: JSON.stringify({ message: userMsg })
     })
     
-    const data = await response.json()
-    messages.value.pop() // 移除思考中
-    messages.value.push({ role: 'assistant', content: data.reply })
+    if (!response.body) throw new Error('伺服器未回傳串流')
+    
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let done = false
+    
+    // 不斷讀取 ReadableStream，並解碼推送到畫面上
+    while (!done) {
+      const { value, done: readerDone } = await reader.read()
+      done = readerDone
+      if (value) {
+        const chunkText = decoder.decode(value, { stream: true })
+        messages.value[assistantMsgIndex].content += chunkText
+      }
+    }
   } catch (e) {
-    messages.value.pop()
-    messages.value.push({ role: 'assistant', content: '連線失敗，請確認後端伺服器與 OpenAI API 是否正常運作。' })
+    messages.value[assistantMsgIndex].content = '連線失敗，請確認後端伺服器與 OpenAI API 是否正常運作。'
   } finally {
     isLoading.value = false
   }
