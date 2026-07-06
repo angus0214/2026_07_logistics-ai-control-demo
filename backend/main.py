@@ -1,16 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+load_dotenv()  # 將 .env 載入到 os.environ，讓 LangChain 抓得到 OPENAI_API_KEY
 
 # Import the database initializer and models
 from core.config import settings
 from db.database import create_db_and_tables
 from db.models import BillOfLading
 
+from api.endpoints import upload, rag
+from services.rag_service import initialize_vector_db
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Server started, initializing database (SQLModel)...")
     create_db_and_tables()
+    try:
+        initialize_vector_db()
+    except Exception as e:
+        print(f"Error initializing Vector DB: {e}")
     yield
 
 app = FastAPI(
@@ -29,9 +39,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from api.endpoints import upload
-
 app.include_router(upload.router, prefix="/api", tags=["upload"])
+app.include_router(rag.router, prefix="/api", tags=["RAG"])
 
 @app.get("/")
 def read_root():

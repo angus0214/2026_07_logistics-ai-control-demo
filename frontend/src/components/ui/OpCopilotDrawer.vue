@@ -12,24 +12,36 @@ const toggleDrawer = () => {
   isOpen.value = !isOpen.value
 }
 
-const sendMessage = () => {
-  if (!inputMessage.value.trim()) return
+const isLoading = ref(false)
+
+const sendMessage = async () => {
+  if (!inputMessage.value.trim() || isLoading.value) return
   
+  const userMsg = inputMessage.value
   // 記錄使用者訊息
-  messages.value.push({ role: 'user', content: inputMessage.value })
+  messages.value.push({ role: 'user', content: userMsg })
   inputMessage.value = ''
+  isLoading.value = true
   
   // 模擬思考中
   messages.value.push({ role: 'assistant', content: '思考中...' })
   
-  // 模擬 API 延遲
-  setTimeout(() => {
-    messages.value.pop()
-    messages.value.push({ 
-      role: 'assistant', 
-      content: '（這是一個前端 Mock 版本，後端尚未接上 RAG 引擎。未來這裡將會根據您上傳的真實法規 SOP 提供精準的回覆！）' 
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/chat/op_rag', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMsg })
     })
-  }, 1000)
+    
+    const data = await response.json()
+    messages.value.pop() // 移除思考中
+    messages.value.push({ role: 'assistant', content: data.reply })
+  } catch (e) {
+    messages.value.pop()
+    messages.value.push({ role: 'assistant', content: '連線失敗，請確認後端伺服器與 OpenAI API 是否正常運作。' })
+  } finally {
+    isLoading.value = false
+  }
 }
 
 defineExpose({ toggleDrawer, isOpen })
