@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { marked } from 'marked'
 import { LucideSparkles, LucideX, LucideSend, LucideBot, LucideUser } from '@lucide/vue'
 
 const isOpen = ref(false)
@@ -23,8 +24,8 @@ const sendMessage = async () => {
   inputMessage.value = ''
   isLoading.value = true
   
-  // 加入空內容的 assistant 氣泡，準備接收串流字元
-  messages.value.push({ role: 'assistant', content: '' })
+  // 加入帶有思考中提示的 assistant 氣泡，準備接收串流字元
+  messages.value.push({ role: 'assistant', content: '<span class="animate-pulse text-zinc-500">思考中...</span>' })
   const assistantMsgIndex = messages.value.length - 1
   
   try {
@@ -39,12 +40,18 @@ const sendMessage = async () => {
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let done = false
+    let isFirstChunk = true
     
     // 不斷讀取 ReadableStream，並解碼推送到畫面上
     while (!done) {
       const { value, done: readerDone } = await reader.read()
       done = readerDone
       if (value) {
+        // 當接收到第一個有效字元時，把「思考中...」清空
+        if (isFirstChunk) {
+          messages.value[assistantMsgIndex].content = ''
+          isFirstChunk = false
+        }
         const chunkText = decoder.decode(value, { stream: true })
         messages.value[assistantMsgIndex].content += chunkText
       }
@@ -100,9 +107,10 @@ defineExpose({ toggleDrawer, isOpen })
         </div>
         <div 
           class="px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm"
-          :class="msg.role === 'user' ? 'bg-zinc-800 text-zinc-100 rounded-tr-sm' : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-300 rounded-tl-sm'"
+          :class="msg.role === 'user' ? 'bg-zinc-800 text-zinc-100 rounded-tr-sm' : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-300 rounded-tl-sm prose prose-sm prose-invert max-w-none'"
         >
-          {{ msg.content }}
+          <template v-if="msg.role === 'user'">{{ msg.content }}</template>
+          <div v-else v-html="marked.parse(msg.content || '')"></div>
         </div>
       </div>
     </div>

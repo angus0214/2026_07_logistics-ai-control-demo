@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "shadcn-vue/tailwind.css";
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
