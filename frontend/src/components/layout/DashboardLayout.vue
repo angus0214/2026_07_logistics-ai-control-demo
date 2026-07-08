@@ -42,9 +42,13 @@ const currentView = inject('currentView') as Ref<string>
            <LucideDatabase class="w-4 h-4" />
            DB 資料庫後台
         </div>
-        <div class="px-3 py-2.5 rounded-lg text-zinc-500 cursor-not-allowed flex items-center gap-3 transition-colors mt-4">
-           <LucideLayoutDashboard class="w-4 h-4 opacity-50" />
-           主管戰情室 (即將開放)
+        <div 
+          @click="currentView = 'boss'"
+          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
+          :class="currentView === 'boss' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
+        >
+           <LucideLayoutDashboard class="w-4 h-4" />
+           主管戰情室
         </div>
       </nav>
       <div class="p-4 border-t border-zinc-800/60 text-xs text-zinc-500 flex items-center justify-between">
