@@ -9,24 +9,47 @@
             <p class="text-zinc-500 text-sm mb-6">可使用自然語言直接查詢提單資料 (Text-to-SQL)</p>
           </div>
           
-          <!-- SSE Thought Process Block -->
+          <!-- Chat History -->
+          <div class="flex flex-col gap-6">
+            <template v-for="(msg, index) in messages" :key="index">
+              <!-- User Message -->
+              <div v-if="msg.role === 'user'" class="flex justify-end">
+                <div class="bg-emerald-600/20 border border-emerald-500/30 text-emerald-100 px-5 py-3 rounded-2xl rounded-tr-sm max-w-[80%]">
+                  {{ msg.content }}
+                </div>
+              </div>
+              
+              <!-- Assistant Message -->
+              <div v-else-if="msg.role === 'assistant'" class="flex justify-start">
+                <div class="message-content prose prose-sm prose-invert max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg" v-html="marked.parse(msg.content)">
+                </div>
+              </div>
+            </template>
+          </div>
+          
+          <!-- Current SSE Thought Process Block -->
           <div 
             v-if="isLoading || thoughts.length > 0" 
-            class="thought-process mb-2 p-4 rounded-lg bg-zinc-900 border border-zinc-700 shadow-md"
+            class="thought-process mt-4 p-4 rounded-lg bg-zinc-900 border border-zinc-700 shadow-md transition-all duration-300"
             :class="{ 'animate-pulse': isLoading }"
           >
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-emerald-500">⚙️</span>
-              <span class="text-zinc-300 font-medium">SQL Agent 思考軌跡</span>
+            <div 
+              class="flex items-center justify-between cursor-pointer group"
+              @click="isThoughtsExpanded = !isThoughtsExpanded"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-500">⚙️</span>
+                <span class="text-zinc-300 font-medium group-hover:text-emerald-400 transition-colors">SQL Agent 思考軌跡</span>
+              </div>
+              <span class="text-zinc-500 group-hover:text-emerald-400 transition-transform duration-300" :class="{ 'rotate-180': isThoughtsExpanded }">
+                ▼
+              </span>
             </div>
-            <div class="text-zinc-500 text-sm pl-6 flex flex-col gap-1">
+            
+            <div v-show="isThoughtsExpanded" class="text-zinc-500 text-sm pl-6 flex flex-col gap-1 mt-3">
               <p v-if="thoughts.length === 0">正在連接資料庫與分析意圖...</p>
               <p v-for="(thought, idx) in thoughts" :key="idx">> {{ thought }}</p>
             </div>
-          </div>
-
-          <!-- Final Message Block -->
-          <div v-if="finalMessage" class="message-content prose prose-sm prose-invert max-w-none p-6 bg-zinc-800/60 rounded-lg border border-zinc-700 shadow-lg" v-html="marked.parse(finalMessage)">
           </div>
         </div>
 
@@ -67,23 +90,38 @@ import { ref } from 'vue'
 import { marked } from 'marked'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 const query = ref('')
 const isLoading = ref(false)
 const thoughts = ref<string[]>([])
-const finalMessage = ref('')
+const messages = ref<ChatMessage[]>([])
+const isThoughtsExpanded = ref(true)
 
 const submitQuery = async () => {
   if (!query.value.trim()) return
   
+  const userText = query.value.trim()
+  query.value = '' // Clear input field immediately
+  
+  messages.value.push({ role: 'user', content: userText })
+  
   isLoading.value = true
+  isThoughtsExpanded.value = true // Auto-expand when a new query starts
   thoughts.value = []
-  finalMessage.value = ''
+  
+  // Create an empty assistant message to append to
+  messages.value.push({ role: 'assistant', content: '' })
+  const assistantMsgIndex = messages.value.length - 1
   
   try {
     const response = await fetch('http://127.0.0.1:8000/api/chat/boss_sql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: query.value })
+      body: JSON.stringify({ message: userText })
     })
 
     if (!response.body) throw new Error('No stream')
@@ -108,7 +146,7 @@ const submitQuery = async () => {
               if (parsed.event === 'thought') {
                 thoughts.value.push(parsed.data)
               } else if (parsed.event === 'message') {
-                finalMessage.value += parsed.data
+                messages.value[assistantMsgIndex].content += parsed.data
               }
             } catch (e) {
               // ignore

@@ -10,7 +10,7 @@ from core.config import settings
 from db.database import create_db_and_tables
 from db.models import BillOfLading
 
-from api.endpoints import upload, rag
+from api.endpoints import upload, rag, chat
 from services.rag_service import initialize_vector_db
 
 @asynccontextmanager
@@ -41,6 +41,7 @@ app.add_middleware(
 
 app.include_router(upload.router, prefix="/api", tags=["upload"])
 app.include_router(rag.router, prefix="/api", tags=["RAG"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 
 @app.get("/")
 def read_root():
