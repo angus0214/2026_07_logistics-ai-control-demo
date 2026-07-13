@@ -28,4 +28,9 @@ async def chat_boss_sql(request: ChatRequest):
             error_chunk = {"event": "thought", "data": f"發生錯誤: {str(e)}"}
             yield f"data: {json.dumps(error_chunk, ensure_ascii=False)}\n\n"
 
-    return StreamingResponse(sse_generator(), media_type="text/event-stream")
+    headers = {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no"
+    }
+    return StreamingResponse(sse_generator(), media_type="text/event-stream", headers=headers)

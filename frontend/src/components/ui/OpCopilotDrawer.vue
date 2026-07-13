@@ -107,8 +107,8 @@ defineExpose({ toggleDrawer, isOpen })
           <LucideBot v-else class="w-4 h-4" />
         </div>
         <div 
-          class="px-4 py-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm"
-          :class="msg.role === 'user' ? 'bg-zinc-800 text-zinc-100 rounded-tr-sm' : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-300 rounded-tl-sm prose prose-sm prose-invert max-w-none prose-p:my-0'"
+          class="px-4 py-3 rounded-2xl !max-w-[85%] text-sm leading-relaxed shadow-sm overflow-x-auto break-words"
+          :class="msg.role === 'user' ? 'bg-zinc-800 text-zinc-100 rounded-tr-sm' : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-300 rounded-tl-sm prose prose-sm prose-invert prose-p:my-0'"
         >
           <template v-if="msg.role === 'user'">{{ msg.content }}</template>
           <div v-else v-html="marked.parse(msg.content || '')"></div>

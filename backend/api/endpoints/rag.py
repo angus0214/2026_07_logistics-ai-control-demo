@@ -15,9 +15,15 @@ def op_rag_chat(request: ChatRequest):
     """
     try:
         # 使用 text/plain 讓前端 fetch 可以單純地接收字串碎片
+        headers = {
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
         return StreamingResponse(
             stream_rag_response(request.message), 
-            media_type="text/plain"
+            media_type="text/plain",
+            headers=headers
         )
     except Exception as e:
         return {"reply": f"AI 助理發生錯誤: {str(e)}"}
