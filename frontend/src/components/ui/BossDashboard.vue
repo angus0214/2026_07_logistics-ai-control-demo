@@ -21,7 +21,13 @@
               
               <!-- Assistant Message -->
               <div v-else-if="msg.role === 'assistant'" class="flex justify-start">
-                <div class="message-content prose prose-sm prose-invert max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg" v-html="marked.parse(msg.content)">
+                <!-- Loading Placeholder for empty message -->
+                <div v-if="msg.content === '' && isLoading" class="message-content px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg text-zinc-400 italic flex items-center gap-3">
+                  <span class="w-4 h-4 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin"></span>
+                  <span class="animate-pulse">正在連接資料庫與分析意圖...</span>
+                </div>
+                <!-- Actual Content -->
+                <div v-else class="message-content prose prose-sm prose-invert max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg" v-html="marked.parse(msg.content)">
                 </div>
               </div>
             </template>
