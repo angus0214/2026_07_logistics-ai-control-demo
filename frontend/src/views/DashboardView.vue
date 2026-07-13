@@ -1,12 +1,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import { LucideTable, LucideDatabaseBackup, LucideRefreshCcw } from '@lucide/vue'
+import { LucideTable, LucideDatabaseBackup, LucideRefreshCcw, LucideArrowUp, LucideArrowDown, LucideArrowUpDown } from '@lucide/vue'
+import { useSort } from '@/composables/useSort'
 
 const activeTab = ref('bl_list')
 const blList = ref<any[]>([])
 const badCases = ref<any[]>([])
 const isLoading = ref(true)
+
+const {
+  sortKey: blSortKey,
+  sortOrder: blSortOrder,
+  sortBy: sortBl,
+  sortedData: sortedBlList
+} = useSort(blList, 'id', 'asc')
+
+const {
+  sortKey: bcSortKey,
+  sortOrder: bcSortOrder,
+  sortBy: sortBc,
+  sortedData: sortedBadCases
+} = useSort(badCases, 'id', 'asc')
 
 const fetchData = async () => {
   isLoading.value = true
@@ -72,20 +87,40 @@ onMounted(() => {
           <table class="w-full min-w-[1200px] text-left text-sm text-zinc-300">
             <thead class="bg-zinc-950 text-zinc-400 uppercase text-xs">
               <tr>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">ID</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">提單號碼</th>
-                <th class="px-6 py-4 font-semibold">託運人</th>
-                <th class="px-6 py-4 font-semibold">收貨人</th>
-                <th class="px-6 py-4 font-semibold">目的地</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">體積 (CBM)</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">運費</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">總重</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">裝船日</th>
-                <th class="px-6 py-4 font-semibold whitespace-nowrap">AI 信心度</th>
+                <th @click="sortBl('id')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">ID <LucideArrowUp v-if="blSortKey === 'id' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'id' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('bl_number')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">提單號碼 <LucideArrowUp v-if="blSortKey === 'bl_number' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'bl_number' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('shipper')" class="px-6 py-4 font-semibold cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">託運人 <LucideArrowUp v-if="blSortKey === 'shipper' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'shipper' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('consignee')" class="px-6 py-4 font-semibold cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">收貨人 <LucideArrowUp v-if="blSortKey === 'consignee' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'consignee' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('destination')" class="px-6 py-4 font-semibold cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">目的地 <LucideArrowUp v-if="blSortKey === 'destination' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'destination' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('volume')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">體積 (CBM) <LucideArrowUp v-if="blSortKey === 'volume' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'volume' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('freight_cost')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">運費 <LucideArrowUp v-if="blSortKey === 'freight_cost' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'freight_cost' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('gross_weight')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">總重 <LucideArrowUp v-if="blSortKey === 'gross_weight' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'gross_weight' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('on_board_date')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">裝船日 <LucideArrowUp v-if="blSortKey === 'on_board_date' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'on_board_date' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBl('confidence_score')" class="px-6 py-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">AI 信心度 <LucideArrowUp v-if="blSortKey === 'confidence_score' && blSortOrder === 'asc'" class="w-3 h-3 text-emerald-400" /><LucideArrowDown v-else-if="blSortKey === 'confidence_score' && blSortOrder === 'desc'" class="w-3 h-3 text-emerald-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800/50">
-              <tr v-for="bl in blList" :key="bl.id" class="hover:bg-zinc-800/20 transition-colors">
+              <tr v-for="bl in sortedBlList" :key="bl.id" class="hover:bg-zinc-800/20 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">{{ bl.id }}</td>
                 <td class="px-6 py-4 text-emerald-400 font-medium whitespace-nowrap">{{ bl.bl_number }}</td>
                 <td class="px-6 py-4 max-w-[300px] truncate" :title="bl.shipper">{{ bl.shipper }}</td>
@@ -113,17 +148,31 @@ onMounted(() => {
           <table class="w-full min-w-[1400px] text-left text-sm text-zinc-300">
             <thead class="bg-zinc-950 text-zinc-400 uppercase text-xs">
               <tr>
-                <th class="px-6 py-4 font-semibold w-16 whitespace-nowrap">ID</th>
-                <th class="px-6 py-4 font-semibold w-24 whitespace-nowrap">提單 ID</th>
-                <th class="px-6 py-4 font-semibold w-48 whitespace-nowrap">修改欄位</th>
-                <th class="px-6 py-4 font-semibold w-32 whitespace-nowrap">原始圖片</th>
-                <th class="px-6 py-4 font-semibold w-[400px]">AI 原始輸出 (Raw)</th>
-                <th class="px-6 py-4 font-semibold w-[400px]">OP 修正輸出 (Corrected)</th>
-                <th class="px-6 py-4 font-semibold w-32 whitespace-nowrap">建立時間</th>
+                <th @click="sortBc('id')" class="px-6 py-4 font-semibold w-16 whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">ID <LucideArrowUp v-if="bcSortKey === 'id' && bcSortOrder === 'asc'" class="w-3 h-3 text-amber-400" /><LucideArrowDown v-else-if="bcSortKey === 'id' && bcSortOrder === 'desc'" class="w-3 h-3 text-amber-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBc('bl_id')" class="px-6 py-4 font-semibold w-24 whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">提單 ID <LucideArrowUp v-if="bcSortKey === 'bl_id' && bcSortOrder === 'asc'" class="w-3 h-3 text-amber-400" /><LucideArrowDown v-else-if="bcSortKey === 'bl_id' && bcSortOrder === 'desc'" class="w-3 h-3 text-amber-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th @click="sortBc('modified_fields')" class="px-6 py-4 font-semibold w-48 whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">修改欄位 <LucideArrowUp v-if="bcSortKey === 'modified_fields' && bcSortOrder === 'asc'" class="w-3 h-3 text-amber-400" /><LucideArrowDown v-else-if="bcSortKey === 'modified_fields' && bcSortOrder === 'desc'" class="w-3 h-3 text-amber-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
+                <th class="px-6 py-4 font-semibold w-32 whitespace-nowrap">
+                  <div class="flex items-center gap-2">原始圖片</div>
+                </th>
+                <th class="px-6 py-4 font-semibold w-[400px]">
+                  <div class="flex items-center gap-2">AI 原始輸出 (Raw)</div>
+                </th>
+                <th class="px-6 py-4 font-semibold w-[400px]">
+                  <div class="flex items-center gap-2">OP 修正輸出 (Corrected)</div>
+                </th>
+                <th @click="sortBc('created_at')" class="px-6 py-4 font-semibold w-32 whitespace-nowrap cursor-pointer hover:bg-zinc-800/50 transition-colors group">
+                  <div class="flex items-center gap-2">建立時間 <LucideArrowUp v-if="bcSortKey === 'created_at' && bcSortOrder === 'asc'" class="w-3 h-3 text-amber-400" /><LucideArrowDown v-else-if="bcSortKey === 'created_at' && bcSortOrder === 'desc'" class="w-3 h-3 text-amber-400" /><LucideArrowUpDown v-else class="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800/50">
-              <tr v-for="bc in badCases" :key="bc.id" class="hover:bg-zinc-800/20 transition-colors">
+              <tr v-for="bc in sortedBadCases" :key="bc.id" class="hover:bg-zinc-800/20 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">{{ bc.id }}</td>
                 <td class="px-6 py-4 text-amber-400 font-medium whitespace-nowrap">#{{ bc.bl_id }}</td>
                 <td class="px-6 py-4">
