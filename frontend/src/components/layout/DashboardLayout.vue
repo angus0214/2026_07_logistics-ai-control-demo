@@ -6,6 +6,14 @@ defineProps({
   hideRightSidebar: {
     type: Boolean,
     default: false
+  },
+  pageTitle: {
+    type: String,
+    default: '文件進件與 OCR 覆核'
+  },
+  rightPanelTitle: {
+    type: String,
+    default: 'Original Document'
   }
 })
 
@@ -60,7 +68,7 @@ const currentView = inject('currentView') as Ref<string>
     <!-- Center Data Processing Area -->
     <main class="flex-1 flex flex-col min-w-0 bg-zinc-900/40 relative">
       <header class="h-16 border-b border-zinc-800/60 flex items-center px-8 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-10">
-        <h2 class="text-base font-semibold tracking-wide text-zinc-200">文件進件與 OCR 覆核</h2>
+        <h2 class="text-base font-semibold tracking-wide text-zinc-200">{{ pageTitle }}</h2>
       </header>
       <div class="flex-1 overflow-y-auto p-8">
         <div class="w-full h-full">
@@ -74,7 +82,7 @@ const currentView = inject('currentView') as Ref<string>
       <header class="h-16 border-b border-zinc-800/60 flex items-center px-6 justify-between bg-zinc-950">
         <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          Original Document
+          {{ rightPanelTitle }}
         </h2>
       </header>
       <div class="flex-1 overflow-hidden p-6 flex flex-col">

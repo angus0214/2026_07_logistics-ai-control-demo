@@ -55,7 +55,7 @@ const handleFileSelected = async (file: File) => {
 </script>
 
 <template>
-  <DashboardLayout>
+  <DashboardLayout page-title="文件進件與 OCR 覆核" right-panel-title="Original Document">
     <template #center>
       <div class="max-w-2xl mx-auto space-y-6 h-full">
         <!-- 上傳區 (縮小一點放上方) -->

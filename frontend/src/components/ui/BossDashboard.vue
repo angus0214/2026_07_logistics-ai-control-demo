@@ -1,5 +1,5 @@
 <template>
-  <DashboardLayout>
+  <DashboardLayout page-title="主管戰情室" right-panel-title="資料視覺化">
     <template #center>
       <!-- Chat Display Area -->
       <div class="flex flex-col h-full">
@@ -82,7 +82,6 @@
 
     <template #right>
       <div class="w-full h-full p-6 flex flex-col">
-        <h2 class="text-sm font-semibold mb-4 text-zinc-400 uppercase tracking-widest">資料視覺化</h2>
         <div class="flex-1 rounded-xl border border-dashed border-zinc-700/80 bg-zinc-900/30 flex items-center justify-center">
           <p class="text-zinc-600 text-sm italic">圖表預留區塊</p>
         </div>

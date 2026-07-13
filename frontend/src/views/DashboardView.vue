@@ -55,7 +55,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <DashboardLayout hide-right-sidebar>
+  <DashboardLayout hide-right-sidebar page-title="DB 資料庫後台">
     <template #center>
       <div class="w-full max-w-[1600px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
         <div class="flex items-center justify-between">
