@@ -11,9 +11,10 @@ const isLoading = ref(true)
 const fetchData = async () => {
   isLoading.value = true
   try {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
     const [blRes, bcRes] = await Promise.all([
-      fetch('http://127.0.0.1:8000/api/bl_list'),
-      fetch('http://127.0.0.1:8000/api/bad_cases')
+      fetch(`${API_BASE}/api/bl_list`),
+      fetch(`${API_BASE}/api/bad_cases`)
     ])
     blList.value = await blRes.json()
     badCases.value = await bcRes.json()

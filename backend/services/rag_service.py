@@ -30,24 +30,32 @@ def initialize_vector_db():
         print(f"找不到知識庫資料夾: {KNOWLEDGE_DIR}")
         return
 
-    print(f"載入 {KNOWLEDGE_DIR} 目錄下的所有 PDF 並建立 RAG 向量資料庫中...")
-    loader = PyPDFDirectoryLoader(KNOWLEDGE_DIR)
-    docs = loader.load()
-    
-    if not docs:
-        print(f"在 {KNOWLEDGE_DIR} 中沒有找到任何 PDF 檔案。")
-        return
+    # 如果已經存在建好的向量庫，就直接載入，省下重新計算的 OpenAI Token 費用 (靜態打包法)
+    if os.path.exists(VECTOR_STORE_DIR) and os.listdir(VECTOR_STORE_DIR):
+        print(f"偵測到現有的 Chroma DB ({VECTOR_STORE_DIR})，直接載入以節省資源...")
+        vectorstore = Chroma(
+            persist_directory=VECTOR_STORE_DIR,
+            embedding_function=OpenAIEmbeddings()
+        )
+    else:
+        print(f"載入 {KNOWLEDGE_DIR} 目錄下的所有 PDF 並建立 RAG 向量資料庫中...")
+        loader = PyPDFDirectoryLoader(KNOWLEDGE_DIR)
+        docs = loader.load()
+        
+        if not docs:
+            print(f"在 {KNOWLEDGE_DIR} 中沒有找到任何 PDF 檔案。")
+            return
 
-    # 將長文件切塊 (Chunking)，每塊 1000 字，保留 200 字重疊以維持上下文語意
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = text_splitter.split_documents(docs)
+        # 將長文件切塊 (Chunking)，每塊 1000 字，保留 200 字重疊以維持上下文語意
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = text_splitter.split_documents(docs)
 
-    # 建立 Chroma 向量資料庫並儲存到硬碟
-    vectorstore = Chroma.from_documents(
-        documents=splits,
-        embedding=OpenAIEmbeddings(),
-        persist_directory=VECTOR_STORE_DIR
-    )
+        # 建立 Chroma 向量資料庫並儲存到硬碟
+        vectorstore = Chroma.from_documents(
+            documents=splits,
+            embedding=OpenAIEmbeddings(),
+            persist_directory=VECTOR_STORE_DIR
+        )
     
     # 設定檢索器 (Retriever)，每次抓取最相關的 3 個段落
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})

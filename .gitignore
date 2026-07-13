@@ -7,6 +7,7 @@ __pycache__/
 # Local Database (非常重要：絕對不要把資料庫推上 GitHub)
 *.db
 *.sqlite3
+!backend/chroma_db/*
 
 # Environment Variables (非常重要：絕對不要把 OpenAI Key 推上 GitHub)
 .env

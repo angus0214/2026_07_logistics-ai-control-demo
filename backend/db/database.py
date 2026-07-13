@@ -1,6 +1,7 @@
+import os
 from sqlmodel import create_engine, SQLModel, Session
 
-sqlite_file_name = "logistics.db"
+sqlite_file_name = os.getenv("SQLITE_FILE_PATH", "logistics.db")
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}

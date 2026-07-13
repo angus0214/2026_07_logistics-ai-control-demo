@@ -35,7 +35,8 @@ const handleFileSelected = async (file: File) => {
     formData.append('file', file)
     
     // 實務上這裡要串接後端 API
-    const response = await fetch('http://127.0.0.1:8000/api/upload_bl', {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+    const response = await fetch(`${API_BASE}/api/upload_bl`, {
       method: 'POST',
       body: formData
     })
