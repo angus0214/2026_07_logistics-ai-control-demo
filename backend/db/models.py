@@ -11,6 +11,8 @@ class BillOfLading(SQLModel, table=True):
     consignee: str = Field(description="收貨人")
     destination: str = Field(description="目的地港口")
     gross_weight: float = Field(description="貨物總重 (公斤)")
+    volume: float = Field(default=0.0, description="體積 (CBM)")
+    freight_cost: float = Field(default=0.0, description="運費")
     eta: str = Field(description="預計抵達日期")
     confidence_score: int = Field(default=100, description="AI 萃取信心度 (0-100)")
     is_verified: bool = Field(default=False, description="是否已由人工覆核確認")

@@ -76,6 +76,8 @@ onMounted(() => {
                 <th class="px-6 py-4 font-semibold">託運人</th>
                 <th class="px-6 py-4 font-semibold">收貨人</th>
                 <th class="px-6 py-4 font-semibold">目的地</th>
+                <th class="px-6 py-4 font-semibold whitespace-nowrap">體積 (CBM)</th>
+                <th class="px-6 py-4 font-semibold whitespace-nowrap">運費</th>
                 <th class="px-6 py-4 font-semibold whitespace-nowrap">總重</th>
                 <th class="px-6 py-4 font-semibold whitespace-nowrap">AI 信心度</th>
               </tr>
@@ -87,6 +89,8 @@ onMounted(() => {
                 <td class="px-6 py-4 max-w-[300px] truncate" :title="bl.shipper">{{ bl.shipper }}</td>
                 <td class="px-6 py-4 max-w-[300px] truncate" :title="bl.consignee">{{ bl.consignee }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ bl.destination }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ bl.volume }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${{ bl.freight_cost }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ bl.gross_weight }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 rounded-full text-xs font-bold" :class="bl.confidence_score >= 80 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'">
