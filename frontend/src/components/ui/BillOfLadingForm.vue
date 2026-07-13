@@ -65,7 +65,7 @@ const confirmSubmit = async () => {
       modified_fields: isBadCase ? modifiedFields : null
     }
 
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+    const API_BASE = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
     const response = await fetch(`${API_BASE}/api/save_bl`, {
       method: 'POST',
       headers: {
