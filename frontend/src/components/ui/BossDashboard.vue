@@ -27,7 +27,7 @@
                   <span class="animate-pulse">正在連接資料庫與分析意圖...</span>
                 </div>
                 <!-- Actual Content -->
-                <div v-else class="message-content prose prose-sm prose-invert max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg" v-html="marked.parse(msg.content)">
+                <div v-else class="message-content prose prose-sm prose-invert max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg prose-p:my-0" v-html="marked.parse(msg.content)">
                 </div>
               </div>
             </template>
