@@ -6,7 +6,7 @@ import { LucideSparkles, LucideX, LucideSend, LucideBot, LucideUser } from '@luc
 const isOpen = ref(false)
 const inputMessage = ref('')
 const messages = ref([
-  { role: 'assistant', content: '您好！我是您的物流法規 Copilot。請問遇到什麼報關上的疑問嗎？例如：「鋰電池空運到歐盟需要什麼文件？」' }
+  { role: 'assistant', content: '您好！我是您的物流法規 Copilot。請問遇到什麼報關上的疑問嗎？例如：「如果有一批 UN3373 想要空運，它的包裝指令可以使用哪個？」' }
 ])
 
 const toggleDrawer = () => {
