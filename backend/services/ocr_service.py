@@ -12,7 +12,7 @@ class OCRExtractionResult(BaseModel):
     destination: str = Field(description="目的地港口 (Port of Discharge / Place of Delivery)，若無則填寫 'Unknown'")
     gross_weight: float = Field(description="貨物總重 (Gross Weight KGS)，請提取數字，若無則回傳 0.0")
     volume: float = Field(default=0.0, description="體積 (Volume CBM 或 M3)，請提取數字，若無則回傳 0.0")
-    eta: str = Field(description="預計抵達日期 (ETA) 或航班日期，若無則填寫 'Unknown'")
+    on_board_date: str = Field(description="裝船日/開航日 (Shipped on Board Date / Date of Issue)，請務必轉換為 YYYY-MM-DD 格式，若無則填寫 ''")
     confidence_score: int = Field(description="你對這份文件解析的整體信心度 (0-100)。如果圖片模糊或缺少關鍵欄位，請降低分數。")
     suspicious_fields: list[str] = Field(
         default=[], 
@@ -27,7 +27,7 @@ def process_bill_of_lading_image(base64_image: str) -> OCRExtractionResult:
     llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=settings.OPENAI_API_KEY)
     structured_llm = llm.with_structured_output(OCRExtractionResult)
     
-    prompt_text = "你是一位專業的物流報關專員。請詳細閱讀這張提單/裝貨單(Shipping Order/Bill of Lading)，並精準提取出所有指定欄位資訊，特別注意『體積 (CBM)』數字。"
+    prompt_text = "你是一位專業的物流報關專員。請詳細閱讀這張提單/裝貨單(Shipping Order/Bill of Lading)，並精準提取出所有指定欄位資訊，特別注意『體積 (CBM)』與『裝船日 (Shipped on Board Date)』。"
     
     message = HumanMessage(
         content=[
