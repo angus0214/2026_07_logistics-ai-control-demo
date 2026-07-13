@@ -165,6 +165,17 @@ const confirmSubmit = async () => {
             class="absolute top-0 right-0 mt-1 text-[10px] text-red-500 font-bold tracking-wider">AI UNCERTAIN</div>
         </div>
       </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="grid gap-2 relative">
+          <label class="text-sm font-medium text-zinc-400">體積 (Volume CBM)</label>
+          <input v-model.number="ocrData.volume" type="number"
+            class="w-full bg-zinc-950 border rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 transition-all"
+            :class="isSuspicious('volume') ? 'border-red-500 focus:ring-red-500/50 bg-red-500/5' : 'border-zinc-800 focus:ring-emerald-500/50'" />
+          <div v-if="isSuspicious('volume')"
+            class="absolute top-0 right-0 mt-1 text-[10px] text-red-500 font-bold tracking-wider">AI UNCERTAIN</div>
+        </div>
+      </div>
     </div>
 
     <!-- Actions -->

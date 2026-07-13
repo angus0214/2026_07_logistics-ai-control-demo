@@ -7,6 +7,7 @@ export interface OcrResult {
   consignee: string
   destination: string
   gross_weight: number
+  volume: number
   eta: string
   confidence_score: number
   suspicious_fields: string[]
@@ -14,7 +15,7 @@ export interface OcrResult {
 
 export const useBlStore = defineStore('bl', () => {
   const getEmptyData = (): OcrResult => ({
-    bl_number: '', shipper: '', consignee: '', destination: '', gross_weight: 0, eta: '', confidence_score: 100, suspicious_fields: []
+    bl_number: '', shipper: '', consignee: '', destination: '', gross_weight: 0, volume: 0, eta: '', confidence_score: 100, suspicious_fields: []
   })
 
   const ocrData = ref<OcrResult>(getEmptyData())
