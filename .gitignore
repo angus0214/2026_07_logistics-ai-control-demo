@@ -19,3 +19,8 @@ __pycache__/
 
 # AI Agent Workspaces
 .scratch/
+
+# Agent Teaching Records
+/lessons/
+/reference/
+MISSION.md
