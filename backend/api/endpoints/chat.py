@@ -10,10 +10,18 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     message: str
 
-@router.post("/boss_sql")
-async def chat_boss_sql(request: ChatRequest):
+@router.post("/boss_sql", response_model=None)
+async def chat_boss_sql(request: ChatRequest) -> StreamingResponse:
     """
-    接收 Boss Dashboard 的自然語言提問，並透過 SSE 串流回傳思考軌跡與最終答案。
+    接收 Boss Dashboard 的自然語言提問，並透過 SSE (Server-Sent Events) 串流回傳思考軌跡與最終答案。
+    
+    此端點整合了 SQL Agent 服務，會即時回傳 Agent 的思考過程 (thought) 與最終答案 (answer)。
+    
+    Args:
+        request (ChatRequest): 包含使用者提問內容的請求物件。
+        
+    Returns:
+        StreamingResponse: SSE 格式的字串流，每一段資料遵循 `data: {JSON}\n\n` 的格式。
     """
     async def sse_generator():
         try:

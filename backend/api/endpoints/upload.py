@@ -9,10 +9,20 @@ from sqlmodel import Session, select
 router = APIRouter()
 
 @router.post("/upload_bl")
-async def upload_bill_of_lading(file: UploadFile = File(...)):
+async def upload_bill_of_lading(file: UploadFile = File(...)) -> dict:
     """
     接收前端上傳的圖片檔，打入 OpenAI Vision 進行 OCR 解析。
+    
     此步驟僅回傳預覽資料，不寫入資料庫。
+    
+    Args:
+        file (UploadFile): 前端上傳的圖片檔案 (必須為 JPEG/PNG 格式)。
+        
+    Returns:
+        dict: 包含解析狀態、訊息與解析出來的 OCR 資料。
+        
+    Raises:
+        HTTPException: 若檔案格式不符或 OCR 解析發生錯誤時拋出。
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="請上傳圖片檔 (JPEG/PNG)")
@@ -43,10 +53,21 @@ class SaveBillOfLadingRequest(BaseModel):
     modified_fields: list[str] | None = None
 
 @router.post("/save_bl")
-def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Depends(get_session)):
+def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Depends(get_session)) -> dict:
     """
     前端人工覆核確認後，將最終資料寫入 SQLite。
-    若被判定為 Bad Case (有修改過)，一併存入 BadCaseFeedback。
+    
+    若資料被判定為 Bad Case (曾被人工修改過)，將會一併把原始圖片與 AI 原始輸出存入 BadCaseFeedback 資料表，供後續資料飛輪與模型微調使用。
+    
+    Args:
+        request (SaveBillOfLadingRequest): 包含覆核後資料、是否為 Bad Case 以及 AI 原始輸出的請求物件。
+        session (Session): SQLModel 的資料庫 Session。
+        
+    Returns:
+        dict: 包含儲存狀態與新增的提單 ID。
+        
+    Raises:
+        HTTPException: 若寫入資料庫失敗時拋出 400 錯誤。
     """
     try:
         # 將前端傳來的 JSON 轉為 SQLModel 物件
@@ -76,18 +97,34 @@ def save_bill_of_lading(request: SaveBillOfLadingRequest, session: Session = Dep
         raise HTTPException(status_code=400, detail=f"寫入資料庫失敗: {str(e)}")
 
 @router.get("/bl_list")
-def get_bill_of_lading_list(session: Session = Depends(get_session)):
+def get_bill_of_lading_list(session: Session = Depends(get_session)) -> list[BillOfLading]:
     """
-    取得所有提單列表，供戰情室 Dashboard 顯示。
+    取得所有提單列表。
+    
+    供戰情室 Dashboard 顯示歷史提單紀錄，按照建立時間反向排序。
+    
+    Args:
+        session (Session): SQLModel 的資料庫 Session。
+        
+    Returns:
+        list[BillOfLading]: 提單紀錄列表。
     """
     statement = select(BillOfLading).order_by(BillOfLading.created_at.desc())
     results = session.exec(statement).all()
     return results
 
 @router.get("/bad_cases")
-def get_bad_cases_list(session: Session = Depends(get_session)):
+def get_bad_cases_list(session: Session = Depends(get_session)) -> list:
     """
-    取得所有 Bad Case 列表，供資料飛輪與工程團隊檢視。
+    取得所有 Bad Case 列表。
+    
+    供資料飛輪與工程團隊檢視系統的判斷盲區，按照建立時間反向排序。
+    
+    Args:
+        session (Session): SQLModel 的資料庫 Session。
+        
+    Returns:
+        list: Bad Case 紀錄列表。
     """
     from db.models import BadCaseFeedback
     statement = select(BadCaseFeedback).order_by(BadCaseFeedback.created_at.desc())
