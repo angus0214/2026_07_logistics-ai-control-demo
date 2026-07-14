@@ -23,5 +23,6 @@ __pycache__/
 
 # Agent Teaching Records
 /lessons/
+/assets/
 /reference/
 MISSION.md
