@@ -107,24 +107,24 @@ graph TD
     end
     
     %% 提單上傳與解析流程
-    UI_Upload -->|上傳圖片| API_Upload
-    API_Upload -->|呼叫| OCR
-    OCR -->|回傳結構化 JSON| API_Upload
+    UI_Upload -->|"上傳圖片"| API_Upload
+    API_Upload -->|"呼叫"| OCR
+    OCR -->|"回傳結構化 JSON"| API_Upload
     API_Upload -.->|"業務覆核 (正確)"| DB_SQL
     API_Upload -.->|"業務覆核 (修改)"| DB_SQL_Bad
     DB_SQL_Bad -.->|"Data Flywheel"| DB_SQL_Bad
     
     %% RAG 流程
-    UI_Chat -->|詢問文件細節| API_RAG
+    UI_Chat -->|"詢問文件細節"| API_RAG
     API_RAG --> Agent_RAG
-    Agent_RAG <-->|檢索相關 Context| DB_Vect
-    Agent_RAG -->|Text 串流| UI_Chat
+    Agent_RAG <-->|"檢索相關 Context"| DB_Vect
+    Agent_RAG -->|"Text 串流"| UI_Chat
     
     %% SQL Agent 流程
-    UI_Boss -->|自然語言查詢營收| API_SQL
+    UI_Boss -->|"自然語言查詢營收"| API_SQL
     API_SQL --> Agent_SQL
-    Agent_SQL <-->|自動產生並執行 SQL| DB_SQL
-    Agent_SQL -->|SSE 串流 (Thought + Answer)| UI_Boss
+    Agent_SQL <-->|"自動產生並執行 SQL"| DB_SQL
+    Agent_SQL -->|"SSE 串流 (Thought + Answer)"| UI_Boss
 
     classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
     classDef frontend fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
