@@ -103,15 +103,16 @@ graph TD
     subgraph "Data Storage"
         DB_SQL[(SQLite \n 關聯式資料)]
         DB_Vect[(ChromaDB \n 向量資料庫)]
+        DB_SQL_Bad[(Bad Case 資料表)]
     end
     
     %% 提單上傳與解析流程
     UI_Upload -->|上傳圖片| API_Upload
     API_Upload -->|呼叫| OCR
     OCR -->|回傳結構化 JSON| API_Upload
-    API_Upload -.->|業務覆核 (正確)| DB_SQL
-    API_Upload -.->|業務覆核 (修改)| DB_SQL_Bad[Bad Case 資料表]
-    DB_SQL_Bad -.->|Data Flywheel| DB_SQL_Bad
+    API_Upload -.->|"業務覆核 (正確)"| DB_SQL
+    API_Upload -.->|"業務覆核 (修改)"| DB_SQL_Bad
+    DB_SQL_Bad -.->|"Data Flywheel"| DB_SQL_Bad
     
     %% RAG 流程
     UI_Chat -->|詢問文件細節| API_RAG
