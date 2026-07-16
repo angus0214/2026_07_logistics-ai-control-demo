@@ -38,7 +38,10 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://2026-07-logistics-ai-control-demo.vercel.app"
+        "https://2026-07-logistics-ai-control-demo.vercel.app",
+        "https://angus41c.dev",
+        "https://www.angus41c.dev",
+        "https://logistics.angus41c.dev"
     ],
     allow_credentials=True,
     allow_methods=["*"],
