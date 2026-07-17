@@ -3,6 +3,7 @@ import PitchHero from '../components/pitch/PitchHero.vue'
 import PitchGenesis from '../components/pitch/PitchGenesis.vue'
 import PitchArchitecture from '../components/pitch/PitchArchitecture.vue'
 import PitchFlywheel from '../components/pitch/PitchFlywheel.vue'
+import PitchProfile from '../components/pitch/PitchProfile.vue'
 </script>
 
 <template>
@@ -11,11 +12,7 @@ import PitchFlywheel from '../components/pitch/PitchFlywheel.vue'
     <PitchGenesis />
     <PitchArchitecture />
     <PitchFlywheel />
-    
-    <!-- Placeholder for upcoming sections -->
-    <div class="py-20 text-center text-gray-500 bg-white">
-      More technical details coming soon... (Scroll down)
-    </div>
+    <PitchProfile />
   </div>
 </template>
 
