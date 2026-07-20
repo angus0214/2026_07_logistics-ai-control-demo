@@ -67,7 +67,7 @@
               v-model="query"
               @keyup.enter="submitQuery"
               class="flex-1 bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-zinc-100 placeholder-zinc-600 shadow-inner"
-              placeholder="例如：幫我統計上個月不同航空公司的運費總和？"
+              placeholder="例如：幫我統計今年運往洛杉磯 (USLAX) 的總重量是多少？"
             />
             <button 
               @click="submitQuery"

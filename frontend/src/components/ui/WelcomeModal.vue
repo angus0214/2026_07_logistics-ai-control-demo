@@ -71,7 +71,7 @@ const handleClose = () => {
               <span class="text-lg">3️⃣</span> 營運對話 (Boss 戰情室)
             </h3>
             <p class="text-xs text-zinc-300 leading-relaxed pl-7">
-              在左側對話框輸入：<span class="text-emerald-300 font-mono">「這個月去 LAX 的貨物有幾筆？」</span>，體驗 Agent 如何直接將自然語言轉為資料庫查詢。
+              在左側對話框輸入：<span class="text-emerald-300 font-mono">「幫我統計今年運往洛杉磯 (USLAX) 的總重量是多少？」</span>，體驗 Agent 如何直接將自然語言轉為資料庫查詢。
             </p>
           </div>
         </div>
