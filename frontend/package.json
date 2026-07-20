@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lucide/vue": "^1.23.0",
+    "@lucide/vue": "^1.25.0",
     "@tailwindcss/typography": "^0.5.20",
     "@vueuse/core": "^14.3.0",
     "class-variance-authority": "^0.7.1",
