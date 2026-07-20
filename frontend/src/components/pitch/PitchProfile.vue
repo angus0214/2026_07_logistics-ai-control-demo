@@ -31,7 +31,7 @@ import { Mail, FileText, Github, Linkedin, CodeXml } from 'lucide-vue-next'
         
         <!-- Resume Link -->
         <a 
-          href="#" 
+          href="/resume.pdf" 
           target="_blank"
           class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-full font-medium transition-colors shadow-lg shadow-blue-900/50"
         >
@@ -41,7 +41,7 @@ import { Mail, FileText, Github, Linkedin, CodeXml } from 'lucide-vue-next'
 
         <!-- Email Link -->
         <a 
-          href="mailto:#" 
+          href="mailto:anguswu0214@gmail.com" 
           class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-6 py-3 rounded-full font-medium transition-colors"
         >
           <Mail class="w-5 h-5 text-gray-400" />
@@ -50,7 +50,7 @@ import { Mail, FileText, Github, Linkedin, CodeXml } from 'lucide-vue-next'
 
         <!-- LinkedIn Link -->
         <a 
-          href="#" 
+          href="https://www.linkedin.com/in/angus-wu-879155167/" 
           target="_blank"
           class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-6 py-3 rounded-full font-medium transition-colors"
         >
@@ -60,7 +60,7 @@ import { Mail, FileText, Github, Linkedin, CodeXml } from 'lucide-vue-next'
 
         <!-- GitHub Link -->
         <a 
-          href="#" 
+          href="https://github.com/angus0214" 
           target="_blank"
           class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-6 py-3 rounded-full font-medium transition-colors"
         >

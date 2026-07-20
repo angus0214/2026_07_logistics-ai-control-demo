@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, type Ref } from 'vue'
-import { LucideFileText, LucideLayoutDashboard, LucideShip, LucideDatabase } from '@lucide/vue'
+import { LucideFileText, LucideLayoutDashboard, LucideShip, LucideDatabase, LucidePresentation } from '@lucide/vue'
 
 defineProps({
   hideRightSidebar: {
@@ -57,6 +57,16 @@ const currentView = inject('currentView') as Ref<string>
         >
            <LucideLayoutDashboard class="w-4 h-4" />
            主管戰情室
+        </div>
+
+        <div class="pt-4 mt-2 border-t border-zinc-800/60">
+          <router-link 
+            to="/pitch"
+            class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.15)] group"
+          >
+             <LucidePresentation class="w-4 h-4" />
+             <span>專案介紹</span>
+          </router-link>
         </div>
       </nav>
       <div class="p-4 border-t border-zinc-800/60 text-xs text-zinc-500 flex items-center justify-between">
