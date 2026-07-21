@@ -69,9 +69,19 @@ const currentView = inject('currentView') as Ref<string>
           </router-link>
         </div>
       </nav>
-      <div class="p-4 border-t border-zinc-800/60 text-xs text-zinc-500 flex items-center justify-between">
-        <span>Angus Workspace</span>
-        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+      <div class="p-4 border-t border-zinc-800/60 flex flex-col gap-4">
+        <a 
+          href="/resume.pdf"
+          target="_blank"
+          class="flex items-center gap-2 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors group cursor-pointer drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] hover:drop-shadow-[0_0_12px_rgba(16,185,129,0.8)]"
+        >
+          <LucideFileText class="w-4 h-4" />
+          <span>Get my Resume</span>
+        </a>
+        <div class="text-xs text-zinc-500 flex items-center justify-between">
+          <span>Angus Workspace</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+        </div>
       </div>
     </aside>
 
