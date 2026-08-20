@@ -71,16 +71,16 @@ defineExpose({ toggleDrawer, isOpen })
   <!-- 觸發按鈕 (漂浮於右下角) -->
   <button 
     @click="toggleDrawer"
-    class="fixed bottom-8 right-8 z-40 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-xl flex items-center gap-2 font-medium transition-all hover:scale-105 group border border-indigo-400/30"
+    class="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-40 w-14 h-14 sm:w-auto sm:h-auto sm:px-5 sm:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-xl flex items-center justify-center sm:gap-2 font-medium transition-all hover:scale-105 group border border-indigo-400/30"
     :class="isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'"
   >
-    <LucideSparkles class="w-5 h-5 text-indigo-200 group-hover:animate-pulse" />
-    法規 Copilot
+    <LucideSparkles class="w-6 h-6 sm:w-5 sm:h-5 text-indigo-200 group-hover:animate-pulse shrink-0" />
+    <span class="hidden sm:inline">法規 Copilot</span>
   </button>
 
   <!-- Drawer 面板 -->
   <div 
-    class="fixed top-0 right-0 h-full w-[400px] bg-zinc-950/95 backdrop-blur-xl border-l border-zinc-800 shadow-2xl z-50 transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex flex-col"
+    class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-zinc-950/95 backdrop-blur-xl border-l border-zinc-800 shadow-2xl z-50 transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex flex-col"
     :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
   >
     <!-- Header -->
