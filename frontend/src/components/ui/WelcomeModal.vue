@@ -27,9 +27,9 @@ const handleClose = () => {
 
 <template>
   <Dialog :open="isOpen" @update:open="handleClose">
-    <DialogContent class="sm:max-w-md bg-zinc-950 border-zinc-800 text-zinc-100 p-0 overflow-hidden">
+    <DialogContent class="sm:max-w-md max-h-[90dvh] flex flex-col bg-zinc-950 border-zinc-800 text-zinc-100 p-0 overflow-hidden">
       <!-- 頂部視覺區塊 -->
-      <div class="h-32 bg-gradient-to-br from-emerald-900/40 via-zinc-900 to-zinc-950 flex items-center justify-center border-b border-zinc-800/50 relative overflow-hidden">
+      <div class="h-32 shrink-0 bg-gradient-to-br from-emerald-900/40 via-zinc-900 to-zinc-950 flex items-center justify-center border-b border-zinc-800/50 relative overflow-hidden">
         <div class="absolute inset-0 bg-[linear-gradient(to_right,#0596691a_1px,transparent_1px),linear-gradient(to_bottom,#0596691a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
         <div class="relative z-10 flex flex-col items-center gap-2">
           <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
@@ -39,7 +39,7 @@ const handleClose = () => {
         </div>
       </div>
 
-      <div class="p-6">
+      <div class="p-6 overflow-y-auto min-h-0">
         <DialogHeader class="mb-4">
           <DialogTitle class="text-xl text-center">歡迎體驗 Logistics AI Control Tower</DialogTitle>
           <DialogDescription class="text-center text-zinc-400 mt-2">
