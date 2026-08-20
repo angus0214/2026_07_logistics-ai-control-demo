@@ -61,19 +61,20 @@
 
         <!-- Input Area -->
         <div class="pt-4 border-t border-zinc-800/80 mt-auto">
-          <div class="flex gap-3">
+          <div class="flex gap-2 sm:gap-3 items-center">
             <input 
               type="text" 
               v-model="query"
               @keyup.enter="submitQuery"
-              class="flex-1 bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-zinc-100 placeholder-zinc-600 shadow-inner"
-              placeholder="例如：幫我統計今年運往 USLAX (Los Angeles) 的總重量是多少？"
+              class="flex-1 w-0 min-w-0 bg-zinc-950/50 border border-zinc-700 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-emerald-500 text-zinc-100 placeholder-zinc-600 shadow-inner"
+              placeholder="例如：統計今年運往 USLAX 的重量？"
             />
             <button 
               @click="submitQuery"
-              class="submit-btn bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-lg shadow-emerald-900/20"
+              class="submit-btn shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 sm:px-8 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors shadow-lg shadow-emerald-900/20 whitespace-nowrap"
             >
-              發送分析
+              <span class="sm:hidden">發送</span>
+              <span class="hidden sm:inline">發送分析</span>
             </button>
           </div>
         </div>
