@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { inject, type Ref } from 'vue'
-import { LucideFileText, LucideLayoutDashboard, LucideShip, LucideDatabase, LucidePresentation } from '@lucide/vue'
+import { ref } from 'vue'
+import { LucideFileText, LucideMenu, LucideX } from '@lucide/vue'
+import LeftSidebar from './LeftSidebar.vue'
 
 defineProps({
   hideRightSidebar: {
@@ -17,96 +18,85 @@ defineProps({
   }
 })
 
-// 從 App.vue 拿取全域的頁面狀態
-const currentView = inject('currentView') as Ref<string>
+const isSidebarOpen = ref(false)
+const isRightPanelOpen = ref(false)
 </script>
 
 <template>
   <div class="h-screen w-full flex overflow-hidden bg-zinc-950 text-zinc-50 font-sans selection:bg-emerald-500/30">
-    <!-- Left Sidebar Menu -->
-    <aside class="w-64 flex-shrink-0 border-r border-zinc-800/60 bg-zinc-950 flex flex-col z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.5)]">
-      <div class="p-6 border-b border-zinc-800/60 h-16 flex items-center">
-        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-zinc-950 shadow-lg shadow-emerald-500/20">
-            <LucideShip class="w-5 h-5" />
-          </div>
-          Logistics AI
-        </h1>
-      </div>
-      <nav class="flex-1 p-4 space-y-1">
-        <div 
-          @click="currentView = 'op'"
-          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
-          :class="currentView === 'op' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
-        >
-           <LucideFileText class="w-4 h-4" />
-           OP 進件作業
-        </div>
-        <div 
-          @click="currentView = 'db'"
-          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
-          :class="currentView === 'db' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
-        >
-           <LucideDatabase class="w-4 h-4" />
-           DB 資料庫後台
-        </div>
-        <div 
-          @click="currentView = 'boss'"
-          class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all"
-          :class="currentView === 'boss' ? 'bg-zinc-800/50 text-emerald-400 border border-zinc-700/50 shadow-sm' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30'"
-        >
-           <LucideLayoutDashboard class="w-4 h-4" />
-           主管戰情室
-        </div>
+    
+    <!-- Mobile Sidebar Overlay Backdrop -->
+    <div 
+      v-if="isSidebarOpen" 
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
+      @click="isSidebarOpen = false"
+    ></div>
 
-        <div class="pt-4 mt-2 border-t border-zinc-800/60">
-          <router-link 
-            to="/pitch"
-            class="px-3 py-2.5 rounded-lg font-medium cursor-pointer flex items-center gap-3 transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.15)] group"
-          >
-             <LucidePresentation class="w-4 h-4" />
-             <span>專案介紹</span>
-          </router-link>
-        </div>
-      </nav>
-      <div class="p-4 border-t border-zinc-800/60 flex flex-col gap-4">
-        <a 
-          href="/resume.pdf"
-          target="_blank"
-          class="flex items-center gap-2 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors group cursor-pointer drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] hover:drop-shadow-[0_0_12px_rgba(16,185,129,0.8)]"
-        >
-          <LucideFileText class="w-4 h-4" />
-          <span>Get my Resume</span>
-        </a>
-        <div class="text-xs text-zinc-500 flex items-center justify-between">
-          <span>Angus Workspace</span>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-        </div>
-      </div>
+    <!-- Left Sidebar (Drawer on Mobile, Static on Desktop) -->
+    <aside 
+      :class="[
+        'fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-800/60 bg-zinc-950 flex flex-col shadow-[4px_0_24px_-12px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out md:relative md:translate-x-0',
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      ]"
+    >
+      <LeftSidebar @close="isSidebarOpen = false" />
     </aside>
 
     <!-- Center Data Processing Area -->
     <main class="flex-1 flex flex-col min-w-0 bg-zinc-900/40 relative">
-      <header class="h-16 border-b border-zinc-800/60 flex items-center px-8 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-10">
-        <h2 class="text-base font-semibold tracking-wide text-zinc-200">{{ pageTitle }}</h2>
+      <header class="h-16 shrink-0 border-b border-zinc-800/60 flex items-center px-4 md:px-8 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-10 justify-between">
+        <div class="flex items-center gap-3">
+          <button 
+            class="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white rounded-md hover:bg-zinc-800"
+            @click="isSidebarOpen = true"
+          >
+            <LucideMenu class="w-5 h-5" />
+          </button>
+          <h2 class="text-base font-semibold tracking-wide text-zinc-200">{{ pageTitle }}</h2>
+        </div>
+        
+        <!-- Mobile Right Panel Toggle Button -->
+        <button 
+          v-if="!hideRightSidebar"
+          class="xl:hidden flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-zinc-800/50 border border-zinc-700/50 text-emerald-400 rounded-lg hover:bg-zinc-800 transition-colors"
+          @click="isRightPanelOpen = true"
+        >
+          <LucideFileText class="w-4 h-4" />
+          <span class="hidden sm:inline">檢視文件</span>
+        </button>
       </header>
-      <div class="flex-1 overflow-y-auto p-8">
+      
+      <div class="flex-1 overflow-y-auto p-4 md:p-8">
         <div class="w-full h-full">
           <slot name="center"></slot>
         </div>
       </div>
     </main>
 
-    <!-- Right Image Preview Area -->
-    <aside v-if="!hideRightSidebar" class="w-[500px] flex-shrink-0 border-l border-zinc-800/60 bg-zinc-950 flex flex-col z-10 shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]">
-      <header class="h-16 border-b border-zinc-800/60 flex items-center px-6 justify-between bg-zinc-950">
+    <!-- Right Image Preview Area (Modal on Mobile/Tablet, Static on Desktop) -->
+    <aside 
+      v-if="!hideRightSidebar" 
+      :class="[
+        'border-l border-zinc-800/60 bg-zinc-950 flex flex-col z-50 transition-transform duration-300 ease-in-out',
+        'xl:relative xl:w-[500px] xl:translate-x-0 xl:shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]', // Desktop
+        isRightPanelOpen ? 'fixed inset-0 translate-x-0 w-full' : 'fixed inset-y-0 right-0 translate-x-full w-full xl:translate-x-0' // Mobile
+      ]"
+    >
+      <header class="h-16 shrink-0 border-b border-zinc-800/60 flex items-center px-6 justify-between bg-zinc-950">
         <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
           {{ rightPanelTitle }}
         </h2>
+        <!-- Close button for mobile -->
+        <button 
+          class="xl:hidden p-2 -mr-2 text-zinc-400 hover:text-white rounded-md hover:bg-zinc-800"
+          @click="isRightPanelOpen = false"
+        >
+          <LucideX class="w-5 h-5" />
+        </button>
       </header>
-      <div class="flex-1 overflow-hidden p-6 flex flex-col">
-        <div class="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900/50 flex items-center justify-center overflow-hidden relative group">
+      <div class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col">
+        <div class="flex-1 min-h-0 rounded-xl border border-zinc-800/80 bg-zinc-900/50 flex items-center justify-center overflow-hidden relative group">
           <slot name="right">
             <div class="text-zinc-600 flex flex-col items-center gap-2">
               <LucideFileText class="w-8 h-8 opacity-50" />
