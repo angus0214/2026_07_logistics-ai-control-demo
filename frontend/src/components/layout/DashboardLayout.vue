@@ -66,8 +66,8 @@ const isRightPanelOpen = ref(false)
         </button>
       </header>
       
-      <div class="flex-1 overflow-y-auto p-4 pb-24 md:p-8">
-        <div class="w-full h-full">
+      <div class="flex-1 overflow-y-auto p-4 pb-16 md:p-8">
+        <div class="w-full min-h-full">
           <slot name="center"></slot>
         </div>
       </div>

@@ -57,7 +57,7 @@ const handleFileSelected = async (file: File) => {
 <template>
   <DashboardLayout page-title="文件進件與 OCR 覆核" right-panel-title="Original Document">
     <template #center>
-      <div class="max-w-2xl mx-auto space-y-6 h-full pb-24 sm:pb-6">
+      <div class="max-w-2xl mx-auto space-y-6 min-h-full pb-6">
         <!-- 上傳區 (縮小一點放上方) -->
         <div class="mb-6 animate-in fade-in zoom-in-95 duration-300">
           <FileUploadZone @file-selected="handleFileSelected" />
