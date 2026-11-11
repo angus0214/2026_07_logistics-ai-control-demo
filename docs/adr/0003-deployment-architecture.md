@@ -1,4 +1,4 @@
-# 0001. 輕量化分離部署架構 (Vercel + Render)
+# 0003. 輕量化分離部署架構 (Vercel + Render)
 
 ## 狀態
 Accepted (2026-07-13)
