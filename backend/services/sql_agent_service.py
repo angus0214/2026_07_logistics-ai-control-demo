@@ -1,23 +1,44 @@
 import os
 import datetime
-from typing import AsyncGenerator
-from langchain_community.utilities import SQLDatabase
+from typing import AsyncGenerator, Sequence
 from langchain_openai import ChatOpenAI
 from langchain_community.agent_toolkits import create_sql_agent
 from dotenv import load_dotenv
 
+from services.sql_guard import GuardedSQLDatabase
+
 load_dotenv()
 
-async def stream_sql_agent(query: str, engine) -> AsyncGenerator[dict, None]:
+# 預設白名單；評估的不同對照組 (Arm) 會傳入不同的白名單 (ADR-0005)
+DEFAULT_ALLOWED_TABLES = ("bills_of_lading",)
+# Agent 整體上限：防止 ReAct 迴圈無止盡地重試
+AGENT_MAX_ITERATIONS = 8
+AGENT_MAX_EXECUTION_SECONDS = 60
+
+
+async def stream_sql_agent(
+    query: str,
+    engine,
+    allowed_tables: Sequence[str] = DEFAULT_ALLOWED_TABLES,
+) -> AsyncGenerator[dict, None]:
     """
     接收自然語言查詢與 SQLAlchemy Engine，透過 LangChain SQL Agent 分析並串流回傳過程。
+
+    engine 應為唯讀連線 (db.database.readonly_engine)。白名單在每次執行 SQL 前強制檢查，
+    不只是把其他資料表從 schema 中藏起來。
     """
-    # 根據 PRD 的資安規範：使用白名單嚴格限制只能存取 bills_of_lading
-    db = SQLDatabase(engine, include_tables=["bills_of_lading"])
-    
+    db = GuardedSQLDatabase(engine, include_tables=allowed_tables)
+
     # 建立具備除錯能力的 SQL Agent
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    agent_executor = create_sql_agent(llm, db=db, agent_type="openai-tools", verbose=True)
+    agent_executor = create_sql_agent(
+        llm,
+        db=db,
+        agent_type="openai-tools",
+        verbose=True,
+        max_iterations=AGENT_MAX_ITERATIONS,
+        max_execution_time=AGENT_MAX_EXECUTION_SECONDS,
+    )
     
     # 在背後偷偷加上強制繁體中文與語氣的 Prompt 限制，並注入系統時間與模糊比對防呆機制
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")

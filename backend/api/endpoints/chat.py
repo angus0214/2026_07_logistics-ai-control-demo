@@ -2,7 +2,7 @@ import json
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from db.database import engine
+from db.database import readonly_engine
 from services.sql_agent_service import stream_sql_agent
 
 router = APIRouter()
@@ -26,7 +26,8 @@ async def chat_boss_sql(request: ChatRequest) -> StreamingResponse:
     async def sse_generator():
         try:
             # 呼叫我們剛剛寫好且通過測試的大腦 (stream_sql_agent)
-            generator = stream_sql_agent(request.message, engine)
+            # 只給 Agent 唯讀連線 (ADR-0005)
+            generator = stream_sql_agent(request.message, readonly_engine)
             
             async for chunk in generator:
                 # 轉化為標準的 Server-Sent Events 格式 (data: {JSON}\n\n)
