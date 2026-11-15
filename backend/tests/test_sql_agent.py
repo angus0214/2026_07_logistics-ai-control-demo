@@ -3,7 +3,10 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.pool import StaticPool
 
 # 由於我們還沒實作 sql_agent_service，這裡的 import 會直接拋出 ImportError (標準的紅燈)
-from services.sql_agent_service import stream_sql_agent
+from services.sql_agent_service import Arm, stream_sql_agent
+
+# 這個測試的假資料庫只有 bills_of_lading，用只查提單、不帶字典的對照組
+BILLS_ONLY_ARM = Arm(allowed_tables=("bills_of_lading",), dictionary=None)
 
 @pytest.fixture
 def mock_db_engine():
@@ -32,7 +35,7 @@ def mock_db_engine():
 @pytest.mark.asyncio
 async def test_agent_generates_correct_sql_and_summary(mock_db_engine):
     # Act: 餵給 Agent 自然語言與我們的假資料庫
-    generator = stream_sql_agent("請問總運費是多少？", mock_db_engine)
+    generator = stream_sql_agent("請問總運費是多少？", mock_db_engine, BILLS_ONLY_ARM)
     
     events = []
     async for chunk in generator:
