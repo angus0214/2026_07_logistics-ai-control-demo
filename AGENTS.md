@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues are tracked using GitHub Issues. External PRs are not treated as a triage surface. See `docs/agents/issue-tracker.md`.
+Issues are tracked as local Markdown files under `.scratch/<feature>/issues/` (gitignored, never on GitHub). External PRs are not treated as a triage surface. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

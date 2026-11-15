@@ -1,45 +1,78 @@
-# Issue tracker: GitHub
+# Issue tracker: local Markdown files
 
-Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues, PRDs and tickets for this repo live as Markdown files under `.scratch/`, not on GitHub. Do not create GitHub issues.
 
-## Conventions
+`.scratch/` is gitignored: tickets exist only on this machine and are never committed. Do not add them to git.
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
-- **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`
-- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
-- **Close**: `gh issue close <number> --comment "..."`
+## Layout
 
-Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+One folder per feature (or effort), one file per ticket:
 
-## Pull requests as a triage surface
+```
+.scratch/
+└── <feature-slug>/
+    ├── README.md              ← index: goal, links to design docs, ticket table
+    └── issues/
+        ├── 00-<slug>.md
+        ├── 01-<slug>.md
+        └── ...
+```
 
-**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
+- Number tickets with two digits in suggested work order (`00`, `01`, …). Numbers are per feature folder.
+- The README's ticket table lists every ticket with its number, title (linked), status and blockers. Keep it in sync whenever a ticket is created, closed or re-blocked.
 
-When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
+## Ticket format
 
-- **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
-- **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
-- **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
+Each ticket file starts with a title and a header block, then free-form body (what to do, acceptance criteria as `- [ ]` checkboxes):
 
-GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with `gh pr view 42` and fall back to `gh issue view 42`.
+```md
+# 03. <title>
+
+狀態：open
+Blocked by：02、00 的 D1
+Labels：ready-for-agent
+
+## 要做什麼
+...
+
+## 驗收條件
+- [ ] ...
+```
+
+- **狀態**: `open`, `done`, or `wontfix`. When done, append the commit hash, e.g. `done（b3cd585）`.
+- **Blocked by**: ticket numbers in the same folder (or `無`). A ticket is unblocked when every blocker is `done`.
+- **Labels** (optional): triage labels from `docs/agents/triage-labels.md`.
+- Ticket content is written in Traditional Chinese for human readers.
 
 ## When a skill says "publish to the issue tracker"
 
-Create a GitHub issue.
+Create a ticket file in the relevant `.scratch/<feature-slug>/issues/` folder (create the folder and README if the feature is new), and add it to the README table.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Read the ticket file. If only a number is given, look it up in the feature README's table.
+
+## Comment / close / label
+
+- **Comment**: append to a `## 紀錄` section at the bottom of the ticket, dated (e.g. `- 2026-11-15：...`).
+- **Close**: set `狀態` to `done（<commit>）` or `wontfix`, and update the README table.
+- **Label**: edit the `Labels` line.
+
+## Pull requests as a triage surface
+
+**PRs as a request surface: no.** _(`/triage` reads this flag.)_
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
+Used by `/wayfinder`. The **map** is the feature folder's `README.md`; its tickets are the files in `issues/`.
 
-- **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body. `gh issue create --label wayfinder:map`.
-- **Child ticket**: an issue linked to the map as a GitHub sub-issue (`gh api` on the sub-issues endpoint). Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
-- **Blocking**: GitHub's **native issue dependencies** — the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). GitHub reports `issue_dependencies_summary.blocked_by` (open blockers only — the live gate). Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
-- **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
-- **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write.
-- **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
+- **Map**: `README.md` holds the Notes / Decisions-so-far / Fog sections plus the ticket table.
+- **Child ticket**: a file in `issues/`. Add `類型：research | prototype | grilling | task` to its header.
+- **Blocking**: the `Blocked by` line.
+- **Frontier query**: open tickets whose blockers are all `done` and that have no `負責人` line; first in number order wins.
+- **Claim**: add `負責人：<name>` to the header. This is the session's first write.
+- **Resolve**: append the answer to `## 紀錄`, set `狀態` to `done`, then add a one-line pointer (gist + link to the ticket file) to the README's Decisions-so-far.
+
+## Legacy GitHub issues
+
+GitHub issues #1 and #2 predate this convention. They are not migrated; leave them alone unless the user asks.
