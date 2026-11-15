@@ -24,7 +24,7 @@ Implement a mobile-specific layout strategy that preserves all existing function
 - **Right Panel**: We will add Tailwind classes to the right `<aside>` to handle modal behavior (`fixed inset-0 z-50 xl:relative xl:w-[500px]`). 
 - **State Management**: We will introduce two reactive variables (`isSidebarOpen` and `isRightPanelOpen`) via Vue's `ref` to manage the overlay states.
 - **Toggle Controls**: A hamburger menu will be added to the mobile header to toggle `isSidebarOpen`. A "View Document" button will be added to toggle `isRightPanelOpen`.
-- **References**: Documented in ADR `0002-mobile-responsive-strategy.md` and added to `CONTEXT.md`.
+- **References**: Documented in ADR `0004-mobile-responsive-strategy.md` and added to `CONTEXT.md`.
 
 ## Testing Decisions
 

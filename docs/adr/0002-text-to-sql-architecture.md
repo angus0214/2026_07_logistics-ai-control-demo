@@ -3,6 +3,8 @@
 ## 狀態
 Accepted (2026-07-08)。第 1 點（資安與範圍）已由 [ADR-0005](0005-enforce-sql-agent-whitelist-at-execution.md) 修正：`include_tables` 只會隱藏 schema，白名單改為在執行時強制。
 
+實作備註：第 4 點最後改用 LangChain 的 `astream()` 逐步取得 Agent 的工具呼叫與最終輸出（而非 `astream_events()`），串流效果相同。
+
 ## 背景脈絡 (Context)
 我們要為主管（老闆）打造一個「戰情室」儀表板，讓他們用自然語言查詢物流資料 (Text-to-SQL)。這個功能必須穩健、安全，並展現 Forward Deployed Engineer (FDE) 重視的透明度與容錯能力。
 
