@@ -46,6 +46,10 @@ async def test_agent_generates_correct_sql_and_summary(mock_db_engine):
     assert len(thoughts) > 0, "Agent 必須產出至少一個思考軌跡 (例如執行了什麼 SQL)"
     
     # Assert 2: 驗證最終結果是否精準抓到 500 這個數字
-    final_message = events[-1]
-    assert final_message.get("event") == "message"
+    final_message = next(e for e in events if e.get("event") == "message")
     assert "500" in final_message.get("data", "")
+
+    # Assert 3: 最後附上查詢依據，數字直接來自資料庫 (ticket 07)
+    evidence = events[-1]
+    assert evidence.get("event") == "result"
+    assert any(500.0 in row for row in evidence["rows"])

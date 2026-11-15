@@ -7,7 +7,7 @@ from langchain_community.agent_toolkits import create_sql_agent
 from dotenv import load_dotenv
 
 from services.data_dictionary import DictionaryVersion, load_dictionary
-from services.sql_guard import GuardedSQLDatabase
+from services.sql_guard import DEFAULT_MAX_ROWS, GuardedSQLDatabase, run_guarded_query
 
 load_dotenv()
 
@@ -34,11 +34,38 @@ def build_agent_input(query: str, current_date: str, dictionary: Optional[str]) 
         f"[系統提示]\n"
         f"1. 今天的日期是 {current_date}。若查詢中提到「今年」，請以此年份為基準。\n"
         f"2. 查詢字串型態的欄位 (例如 destination, shipper) 時，請一律優先使用 `LIKE '%關鍵字%'` 進行模糊比對。因為資料庫中的值常帶有額外括號或全名，例如 'USLAX (Los Angeles)'。\n"
-        f"3. 請務必使用「繁體中文 (zh-TW)」回答。若是金額或數量，請加上適當的單位 (如公斤、USD) 以利閱讀。"
+        f"3. 請務必使用「繁體中文 (zh-TW)」回答。若是金額或數量，請加上適當的單位 (如公斤、USD) 以利閱讀。\n"
+        f"4. 最後執行的那一句 SQL 必須單獨就能回答整個問題：差額、比例、比較都要在同一句 SQL 裡算好，不要分多句查完再自己計算，因為使用者會看到這句 SQL 的結果表格。"
     )
     if dictionary:
         agent_input += f"\n\n請依照下列資料字典的欄位意義與業務規則撰寫 SQL。\n[資料字典]\n{dictionary}"
     return agent_input
+
+
+def _json_safe(value):
+    return value if value is None or isinstance(value, (str, int, float, bool)) else str(value)
+
+
+def result_event(engine, sql: Optional[str], allowed_tables, max_rows: int = DEFAULT_MAX_ROWS) -> Optional[dict]:
+    """
+    查詢依據 (Query Evidence)：用同樣的防護重跑 Agent 最後一句 SQL，把結果原樣交給前端渲染成表格。
+
+    表格的數字不經過 LLM，也和評估判分重跑的是同一句 SQL（ADR-0008）。
+    沒有 SQL 或重跑失敗時回傳 None，不送出表格。
+    """
+    if not sql:
+        return None
+    try:
+        columns, rows, truncated = run_guarded_query(engine, sql, allowed_tables, max_rows=max_rows)
+    except Exception:
+        return None
+    return {
+        "event": "result",
+        "sql": sql,
+        "columns": columns,
+        "rows": [[_json_safe(v) for v in row] for row in rows],
+        "truncated": truncated,
+    }
 
 
 def action_event(tool_name: str, tool_input) -> dict:
@@ -80,13 +107,16 @@ async def stream_sql_agent(
     )
 
     # 透過 astream 擷取 Agent 的執行步驟與最終產出
+    last_sql = None
     async for chunk in agent_executor.astream(
         {"input": enhanced_query}
     ):
         # 攔截工具使用 (Thought Process)
         if "actions" in chunk:
             for action in chunk["actions"]:
-                yield action_event(action.tool, action.tool_input)
+                event = action_event(action.tool, action.tool_input)
+                last_sql = event.get("sql", last_sql)
+                yield event
 
         # 攔截最終產出 (Final Message)
         if "output" in chunk:
@@ -94,3 +124,8 @@ async def stream_sql_agent(
                 "event": "message",
                 "data": chunk["output"]
             }
+
+    # 查詢依據：最後一句 SQL 的原始結果，表格由前端直接渲染、不經 LLM（ADR-0008）
+    evidence = result_event(engine, last_sql, arm.allowed_tables)
+    if evidence:
+        yield evidence
