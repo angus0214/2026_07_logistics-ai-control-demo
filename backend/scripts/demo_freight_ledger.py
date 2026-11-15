@@ -17,6 +17,8 @@ from scripts.demo_bills import SHIPPERS, generate_bills_of_lading
 SOURCE_DIR = Path(__file__).resolve().parent.parent / "data" / "source"
 CLEAN_CSV = SOURCE_DIR / "freight_ledger_clean.csv"    # 標準答案的來源（ticket 06）
 EXPORT_CSV = SOURCE_DIR / "freight_ledger_export.csv"  # 「財務系統匯出檔」，03 原樣載入
+ALIASES_CSV = SOURCE_DIR / "customer_aliases.csv"      # 03 的客戶別名表
+FX_RATES_CSV = SOURCE_DIR / "fx_rates.csv"             # 03 的月匯率表
 
 SEED = 20260802
 CREDIT_NOTE_BL_COUNT = 7  # 約 15% 的提單有 Credit Note
@@ -212,4 +214,15 @@ if __name__ == "__main__":
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     _write_csv(CLEAN_CSV, lines)
     _write_csv(EXPORT_CSV, dirty_export(lines))
-    print(f"已寫入 {len(lines)} 筆 Charge Line：{CLEAN_CSV.name}、{EXPORT_CSV.name}")
+    # 別名表含標準名稱對應自己；UNMAPPED_CUSTOMER_NAMES 刻意不放
+    _write_csv(ALIASES_CSV, [
+        {"alias": alias, "shipper": shipper}
+        for shipper, aliases in CUSTOMER_ALIASES.items()
+        for alias in [shipper, *aliases]
+    ])
+    _write_csv(FX_RATES_CSV, [
+        {"month": month, "currency": currency, "units_per_usd": rate}
+        for month, rates in FX_RATES.items()
+        for currency, rate in rates.items()
+    ])
+    print(f"已寫入 {len(lines)} 筆 Charge Line 與參考表：{SOURCE_DIR}")
