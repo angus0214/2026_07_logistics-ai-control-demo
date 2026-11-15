@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from db.database import engine, create_db_and_tables
 from db.models import BillOfLading
+from db.freight_ledger import load_freight_ledger
 from scripts.demo_bills import generate_bills_of_lading
 
 # 乾淨原始資料：給運費帳產生器 (ticket 02) 與標準答案 (ticket 06) 使用，commit 進 repo
@@ -38,7 +39,10 @@ def seed_data():
             session.add(BillOfLading(**fields, is_verified=True))
         session.commit()
 
-    print(f"=== 匯入完成：{len(bills)} 筆提單；乾淨原始資料已寫入 {SOURCE_CSV} ===")
+    # 運費帳跟著提單一起重載，兩邊才會是同一份固定資料
+    load_freight_ledger(engine, reload=True)
+
+    print(f"=== 匯入完成：{len(bills)} 筆提單＋運費帳；乾淨原始資料已寫入 {SOURCE_CSV} ===")
 
 
 if __name__ == "__main__":

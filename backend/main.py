@@ -7,7 +7,8 @@ load_dotenv()  # 將 .env 載入到 os.environ，讓 LangChain 抓得到 OPENAI_
 
 # Import the database initializer and models
 from core.config import settings
-from db.database import create_db_and_tables
+from db.database import create_db_and_tables, engine
+from db.freight_ledger import load_freight_ledger
 from db.models import BillOfLading
 
 from api.endpoints import upload, rag, chat
@@ -17,6 +18,7 @@ from services.rag_service import initialize_vector_db
 async def lifespan(app: FastAPI):
     print("Server started, initializing database (SQLModel)...")
     create_db_and_tables()
+    load_freight_ledger(engine)  # 運費帳不存在才載入；參考表與 view 每次重建 (D1)
     try:
         initialize_vector_db()
     except Exception as e:
