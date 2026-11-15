@@ -1,0 +1,66 @@
+# 資料字典（View 版）：戰情室 Agent 的預設字典，也給人看。
+# 用詞與 CONTEXT.md 一致；欄位必須和實際 schema 完全相同（tests/test_data_dictionary.py 會檢查）。
+
+tables:
+  bills_of_lading:
+    purpose: 提單主表，一張貨件 (shipment) 一列。來自 OCR 萃取並經人工覆核。
+    columns:
+      id: 流水號，無業務意義。
+      bl_number: B/L Number（提單號），貨件的唯一識別，例如 EGLV12345678。
+      shipper: 託運人，也就是客戶 (Customer)。
+      consignee: 收貨人。不是客戶。
+      destination: 目的地港口，格式如 'USLAX (Los Angeles)'，查詢時用 LIKE 模糊比對。
+      gross_weight: 貨物總重，單位公斤。
+      volume: 體積，單位 CBM。
+      freight_cost: Quoted Freight（報價運費），提單上印的金額，USD。不是「運費」，見 business_rules。
+      on_board_date: On-board Date（開航日），YYYY-MM-DD 字串。
+      confidence_score: AI 萃取信心度 (0-100)。
+      is_verified: 是否已由人工覆核確認 (1/0)。
+      created_at: 資料建立時間 (UTC)，不是業務日期，不要拿來算期間。
+
+  freight_charges:
+    purpose: 運費帳清理後的 view，一列是一筆 Charge Line（費用明細）。原始資料已正規化、換匯、處理正負號，直接加總即可。
+    columns:
+      raw_bl_number: 財務匯出檔裡的原始提單號寫法，僅供稽核。
+      bl_number: 正規化後的提單號（去空白、去 -、轉大寫），用來 JOIN bills_of_lading.bl_number。
+      match_status: 對帳狀態 (Match Status)。matched＝原樣對上提單；normalized_match＝正規化後才對上；unmatched＝對不上任何提單（系統外貨件，仍保留）。
+      raw_customer: 財務匯出檔裡的原始客戶名寫法，僅供稽核。
+      customer: 客戶，已對應成標準 Shipper 名稱，和 bills_of_lading.shipper 相同寫法。
+      is_unmapped_customer: 1＝別名表裡沒有這個寫法 (Unmapped Customer)，customer 保留原名；0＝已對應。
+      charge_code: 費用類型。OF＝海運費；THC＝碼頭處理費；BAF＝燃油附加費；CN＝Credit Note（沖銷）。
+      is_credit_note: 1＝Credit Note。
+      raw_amount: 財務匯出檔裡的原始金額字串，僅供稽核。
+      currency: 原幣別 ISO 代碼（USD / TWD / EUR / JPY）。
+      amount: 原幣金額；Credit Note 一律已是負數。不同幣別不可直接相加。
+      amount_usd: 依發票月份匯率換成 USD 的金額；Credit Note 已是負數。所有金額問題都用這欄。
+      raw_invoice_date: 財務匯出檔裡的原始發票日寫法，僅供稽核。
+      invoice_date: Invoice Date（發票日），YYYY-MM-DD；決定換匯用哪個月份的匯率。
+      on_board_date: 從 bills_of_lading JOIN 來的 On-board Date（開航日），YYYY-MM-DD；unmatched 的列為 NULL。
+
+business_rules:
+  freight_means_billed_amount: >-
+    沒特別指定的「運費」「請款」「營收」＝ Billed Amount（請款金額），從 freight_charges 計算：
+    一張提單的 Billed Amount ＝ 該 bl_number 的 SUM(amount_usd)，單位 USD。
+    bills_of_lading.freight_cost 是 Quoted Freight（報價運費），只有問「報價」時才用；
+    問「請款和報價差多少」才同時用兩者。
+  period_by_on_board_date: >-
+    「8 月的運費」這類期間問題，預設以 on_board_date（開航日）所在月份為準，
+    例如 on_board_date LIKE '2026-08-%'。只有明確問「發票日」「開票」「入帳」時才用 invoice_date。
+    unmatched 的列 on_board_date 是 NULL，不屬於任何開航日期間。
+  unmatched_in_totals: >-
+    沒指定期間、也沒用到提單屬性（目的地、收貨人等）的總額，例如「Apple 的總運費」「總請款」，
+    要包含 match_status＝'unmatched' 的列：那是系統外貨件，但確實對客戶請了款。
+    依開航日期間或提單屬性篩選時，unmatched 的列自然不會被算到。
+  credit_note_negative: >-
+    Credit Note（charge_code＝'CN'）會減少客戶應付金額。amount 與 amount_usd 已經是負數，
+    直接 SUM 即可，不要再取負號或排除。
+  customer_is_shipper: >-
+    客戶 (Customer) 一律是 Shipper（本 demo 假設全部預付），不是 consignee。
+    freight_charges.customer 已對應成和 bills_of_lading.shipper 相同的標準名稱；
+    is_unmapped_customer＝1 的列保留原名，問特定客戶時也要考慮它（例如用 LIKE 比對）。
+
+routing:
+  shipments: 問提單、貨件數、貨量、重量、目的地、收貨人、報價運費 → bills_of_lading。
+  money: >-
+    問運費、請款、費用、沖銷、幣別 → freight_charges；
+    需要提單屬性（目的地、開航日以外的欄位）時，用 bl_number JOIN bills_of_lading。
