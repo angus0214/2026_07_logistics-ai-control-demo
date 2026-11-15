@@ -1,6 +1,11 @@
 from sqlmodel import Field, SQLModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def utc_now() -> datetime:
+    """sqlmodel 0.0.50 起 datetime 欄位必須帶時區。"""
+    return datetime.now(timezone.utc)
 
 class BillOfLading(SQLModel, table=True):
     __tablename__ = "bills_of_lading"
@@ -16,7 +21,7 @@ class BillOfLading(SQLModel, table=True):
     on_board_date: str = Field(description="裝船日/開航日 (YYYY-MM-DD)")
     confidence_score: int = Field(default=100, description="AI 萃取信心度 (0-100)")
     is_verified: bool = Field(default=False, description="是否已由人工覆核確認")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 class BadCaseFeedback(SQLModel, table=True):
     __tablename__ = "bad_cases"
@@ -27,4 +32,4 @@ class BadCaseFeedback(SQLModel, table=True):
     human_corrected_output: str = Field(description="人員手動修正後的 JSON 字串")
     modified_fields: str = Field(default="[]", description="被修改的欄位清單 (JSON 字串陣列)")
     image_base64: str = Field(description="提單原始圖片的 Base64")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="建立時間")
+    created_at: datetime = Field(default_factory=utc_now, description="建立時間")
