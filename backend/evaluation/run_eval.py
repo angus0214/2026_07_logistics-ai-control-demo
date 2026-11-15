@@ -21,7 +21,7 @@ from typing import Optional
 
 from db.database import create_readonly_engine
 from evaluation.database import build_eval_db
-from evaluation.questions import QUESTIONS, Question
+from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS, Question
 from evaluation.scoring import score
 from services.sql_agent_service import WAR_ROOM_ARM, Arm, stream_sql_agent
 from services.sql_guard import run_guarded_query
@@ -31,6 +31,10 @@ ARMS = {
     "Raw": Arm(allowed_tables=RAW_TABLES, dictionary=None),
     "Raw + Dictionary": Arm(allowed_tables=RAW_TABLES, dictionary="raw"),
     "View + Dictionary": WAR_ROOM_ARM,
+}
+QUESTION_SETS = {
+    "main": QUESTIONS,             # 20 題評估集 (ticket 06)
+    "holdout": HOLDOUT_QUESTIONS,  # 6 題驗證題 (ticket 07)
 }
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 MODEL = "gpt-4o-mini"  # 與 services/sql_agent_service.py 一致
@@ -113,11 +117,11 @@ def _pct(correct: int, total: int) -> str:
     return f"{correct}/{total}（{correct / total:.0%}）" if total else "—"
 
 
-def render_report(summary: dict, meta: dict) -> str:
+def render_report(summary: dict, meta: dict, questions: list[Question]) -> str:
     arms = list(summary)
-    traps = list(dict.fromkeys(q.trap for q in QUESTIONS))
+    traps = list(dict.fromkeys(q.trap for q in questions))
     lines = [
-        f"# 評估報告 {meta['date']}",
+        f"# 評估報告 {meta['date']}（{meta['set']}）",
         "",
         f"- 模型：{meta['model']}；每題每組跑 {meta['runs']} 次；commit `{meta['commit']}`",
         "- 資料：01 固定提單 50 張＋02 運費帳 114 筆，評估前重建於獨立 SQLite 檔",
@@ -136,7 +140,7 @@ def render_report(summary: dict, meta: dict) -> str:
         cells = [_pct(*summary[arm]["by_trap"].get(trap, (0, 0))) for arm in arms]
         lines.append(f"| {trap} | " + " | ".join(cells) + " |")
     lines += ["", "## 逐題（✅ 對、❌ 錯，依每次執行順序）", "", "| 題目 | 陷阱 | " + " | ".join(arms) + " |", "|---|---|" + "---|" * len(arms)]
-    for q in QUESTIONS:
+    for q in questions:
         if not any(q.qid in summary[arm]["per_question"] for arm in arms):
             continue
         cells = ["".join("✅" if ok else "❌" for ok in summary[arm]["per_question"].get(q.qid, [])) for arm in arms]
@@ -171,6 +175,7 @@ def _commit() -> str:
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="評估集跑分")
+    parser.add_argument("--set", choices=list(QUESTION_SETS), default="main", help="題組")
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--only", nargs="*", help="只跑這些題號")
@@ -178,7 +183,7 @@ def main() -> None:
     parser.add_argument("--no-report", action="store_true", help="不寫 Markdown 報告（冒煙測試用）")
     args = parser.parse_args()
 
-    questions = [q for q in QUESTIONS if not args.only or q.qid in args.only]
+    questions = [q for q in QUESTION_SETS[args.set] if not args.only or q.qid in args.only]
     with tempfile.TemporaryDirectory() as tmp:
         db_path = Path(tmp) / "eval.db"
         build_eval_db(db_path)
@@ -188,8 +193,8 @@ def main() -> None:
         finally:
             engine.dispose()
 
-    stamp = datetime.now().strftime("%Y-%m-%d_%H%M")
-    meta = {"date": stamp, "model": MODEL, "runs": args.runs, "commit": _commit()}
+    stamp = datetime.now().strftime("%Y-%m-%d_%H%M") + ("" if args.set == "main" else f"_{args.set}")
+    meta = {"date": stamp, "set": args.set, "model": MODEL, "runs": args.runs, "commit": _commit()}
     RESULTS_DIR.mkdir(exist_ok=True)
     (RESULTS_DIR / f"{stamp}.json").write_text(
         json.dumps({"meta": meta, "records": [asdict(r) for r in records]}, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -199,7 +204,7 @@ def main() -> None:
         print(f"{arm}: {_pct(s['correct'], s['total'])}，穩定答對 {s['stable']}/{s['questions']}")
     if not args.no_report:
         report = RESULTS_DIR / f"{stamp}.md"
-        report.write_text(render_report(summary, meta), encoding="utf-8")
+        report.write_text(render_report(summary, meta, questions), encoding="utf-8")
         print(f"報告：{report}")
 
 

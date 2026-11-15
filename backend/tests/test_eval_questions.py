@@ -5,7 +5,7 @@ from collections import Counter
 import pytest
 
 import evaluation.questions as questions_module
-from evaluation.questions import QUESTIONS
+from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS
 from evaluation.scoring import Number, Pairs, Value
 
 TRAPS = {"Credit Note", "多幣別", "客戶別名", "Unmatched", "開航日 vs 發票日", "報價 vs 請款", "提單號正規化"}
@@ -52,3 +52,22 @@ def test_gold_answers_never_come_from_the_cleaned_view():
     source = inspect.getsource(questions_module)
     # 只能讀乾淨原始資料，不能讀 view 或弄髒的匯出檔
     assert "freight_charges" not in source and "freight_ledger_export" not in source
+
+
+# ---- 驗證題 (ticket 07)：沒用過的多步計算題，用來驗證「最後一句 SQL 單獨回答」規則 ----
+
+def test_holdout_has_six_new_questions_unlike_the_main_set():
+    assert len(HOLDOUT_QUESTIONS) == 6
+    assert len({q.qid for q in HOLDOUT_QUESTIONS}) == 6
+    assert not {q.text for q in HOLDOUT_QUESTIONS} & {q.text for q in QUESTIONS}
+    assert not {q.qid for q in HOLDOUT_QUESTIONS} & {q.qid for q in QUESTIONS}
+
+
+def test_holdout_questions_name_explicit_periods():
+    for q in HOLDOUT_QUESTIONS:
+        assert not any(word in q.text for word in ["上個月", "本月", "今年", "去年", "最近"]), q.text
+
+
+def test_highest_quote_question_is_not_the_highest_billed_shipment():
+    # 報價最高 (EGLV46945080) 和請款最高 (ONEY83837288) 是不同張，題目才分得出有沒有用對欄位
+    assert next(q for q in HOLDOUT_QUESTIONS if q.qid == "H-5").gold == Value("EGLV46945080")

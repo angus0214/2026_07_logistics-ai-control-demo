@@ -117,3 +117,32 @@ QUESTIONS = [
     Question("CT-6", "對照題", "AI 萃取信心度低於 90 的提單有幾張？",
              Number(sum(1 for b in _bills.values() if int(b["confidence_score"]) < 90))),
 ]
+
+
+# ---- 驗證題 (ticket 07)：沒用過的多步計算題 ----
+# 用來驗證「最後一句 SQL 必須單獨回答整個問題」規則（ADR-0008），以及 QB-2 暴露的「報價」弱點。
+# 在看到規則上線後的結果之前就固定下來，不拿原本 20 題證明修好了。
+
+def _billed_minus_quoted(bills) -> float:
+    return round(sum(_billed(b["bl_number"]) - float(b["freight_cost"]) for b in bills), 2)
+
+
+_oct_lines = _shipped_in("2026-10")
+_sep_bills = _bills_shipped_in("2026-09")
+_gap_by_month = {m: _billed_minus_quoted(_bills_shipped_in(m)) for m in ("2026-08", "2026-09", "2026-10")}
+
+HOLDOUT_QUESTIONS = [
+    Question("H-1", "多步：差額", "提單 EGLV31480004 的請款金額比報價運費多多少？",
+             Number(round(_billed("EGLV31480004") - float(_bills["EGLV31480004"]["freight_cost"]), 2))),
+    Question("H-2", "多步：差額", "2026 年 9 月開航的提單，請款總額比報價總額多多少？",
+             Number(_billed_minus_quoted(_sep_bills))),
+    Question("H-3", "多步：比例", "2026 年 10 月開航貨件的運費中，以台幣開立的費用占多少百分比？（例如 12.34）",
+             Number(round(sum(line["usd"] for line in _oct_lines if line["currency"] == "TWD")
+                          / sum(line["usd"] for line in _oct_lines) * 100, 2))),
+    Question("H-4", "報價", "Nvidia Corp 2026 年 10 月開航提單的報價運費總額是多少？",
+             Number(round(sum(float(b["freight_cost"]) for b in _bills_shipped_in("2026-10") if b["shipper"] == "Nvidia Corp"), 2))),
+    Question("H-5", "報價", "2026 年 9 月開航的提單中，報價運費最高的是哪一張？",
+             Value(max(_sep_bills, key=lambda b: float(b["freight_cost"]))["bl_number"])),
+    Question("H-6", "多步：比較", "2026 年 8、9、10 月中，哪個月開航的貨件請款總額比報價總額多最多？請以 YYYY-MM 表示。",
+             Value(max(_gap_by_month, key=_gap_by_month.get))),
+]
