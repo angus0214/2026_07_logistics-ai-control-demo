@@ -65,4 +65,36 @@ describe('BossDashboard.vue - Text-to-SQL Transparent UI', () => {
     expect(messageBlock.exists()).toBe(true)
     expect(messageBlock.text()).toContain('總運費為 $500') // 由於 marked 解析，字眼會純淨保留
   })
+
+  it('renders the query evidence table even when its event is split across network chunks', async () => {
+    // 結果表格的事件可能很長，會被切成好幾段送達；要等到整行收齊才解析
+    const resultLine = 'data: {"event": "result", "sql": "SELECT 1", "columns": ["bl_number", "billed"], "rows": [["EGLV01670704", 3516.59]], "truncated": false}\n\n'
+    const mockChunks = [
+      'data: {"event": "message", "data": "請款最高的是 EGLV01670704"}\n\n',
+      resultLine.slice(0, 60),
+      resultLine.slice(60),
+    ]
+    let chunkIndex = 0
+    const mockStream = new ReadableStream({
+      pull(controller) {
+        if (chunkIndex < mockChunks.length) {
+          controller.enqueue(new TextEncoder().encode(mockChunks[chunkIndex]))
+          chunkIndex++
+        } else {
+          controller.close()
+        }
+      }
+    })
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, body: mockStream })
+
+    const wrapper = mount(BossDashboard)
+    await wrapper.find('input[type="text"]').setValue('請款最高的是哪一張？')
+    await wrapper.find('button.submit-btn').trigger('click')
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    const evidence = wrapper.find('.query-evidence')
+    expect(evidence.exists()).toBe(true)
+    expect(evidence.text()).toContain('EGLV01670704')
+    expect(evidence.text()).toContain('3,516.59')
+  })
 })

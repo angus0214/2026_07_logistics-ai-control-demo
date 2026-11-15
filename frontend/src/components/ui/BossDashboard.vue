@@ -20,7 +20,7 @@
               </div>
               
               <!-- Assistant Message -->
-              <div v-else-if="msg.role === 'assistant'" class="flex justify-start">
+              <div v-else-if="msg.role === 'assistant'" class="flex flex-col items-start">
                 <!-- Loading Placeholder for empty message -->
                 <div v-if="msg.content === '' && isLoading" class="message-content px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg text-zinc-400 italic flex items-center gap-3">
                   <span class="w-4 h-4 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin"></span>
@@ -29,6 +29,13 @@
                 <!-- Actual Content -->
                 <div v-else class="message-content prose prose-sm prose-invert !max-w-[85%] px-5 py-4 bg-zinc-800/60 rounded-2xl rounded-tl-sm border border-zinc-700 shadow-lg prose-p:my-0 overflow-x-auto break-words" v-html="renderMarkdown(msg.content)">
                 </div>
+                <!-- 查詢依據：最後一句 SQL 的原始結果，不經 LLM（ADR-0008） -->
+                <QueryResultTable
+                  v-if="msg.result"
+                  :columns="msg.result.columns"
+                  :rows="msg.result.rows"
+                  :truncated="msg.result.truncated"
+                />
               </div>
             </template>
           </div>
@@ -95,10 +102,18 @@
 import { ref } from 'vue'
 import { renderMarkdown } from '@/utils/markdown'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import QueryResultTable from '@/components/ui/QueryResultTable.vue'
+
+interface QueryResult {
+  columns: string[]
+  rows: unknown[][]
+  truncated: boolean
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  result?: QueryResult
 }
 
 const query = ref('幫我統計今年運往 USLAX (Los Angeles) 的總重量是多少？')
@@ -136,13 +151,16 @@ const submitQuery = async () => {
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let done = false
+    // 一個事件可能被切成好幾段送達（例如很長的查詢結果），最後一段不完整的行先留著，等下一段補齊
+    let buffer = ''
 
     while (!done) {
       const { value, done: readerDone } = await reader.read()
       done = readerDone
       if (value) {
-        const chunkText = decoder.decode(value, { stream: true })
-        const lines = chunkText.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
@@ -154,6 +172,12 @@ const submitQuery = async () => {
                 thoughts.value.push(parsed.data)
               } else if (parsed.event === 'message') {
                 messages.value[assistantMsgIndex].content += parsed.data
+              } else if (parsed.event === 'result') {
+                messages.value[assistantMsgIndex].result = {
+                  columns: parsed.columns,
+                  rows: parsed.rows,
+                  truncated: parsed.truncated,
+                }
               }
             } catch (e) {
               // ignore
