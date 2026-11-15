@@ -48,6 +48,10 @@ _Avoid_: bill-to, consignee, client
 The single written definition of every queryable field and business rule (what "運費" means, which date defines a period, which table answers what). Read by humans and by the Agent alike.
 _Avoid_: schema doc, metadata
 
+**Query Evidence（查詢依據）**:
+The raw result of the last SQL the Agent ran for an answer, shown as a table under the summary. Its numbers come straight from the database, never retyped by the LLM, and it is the same query the Eval Set scores.
+_Avoid_: result table, data table
+
 **Unmapped Customer（未對應客戶）**:
 A customer name in the Freight Ledger with no known alias; it is kept under its raw spelling and flagged, never blanked.
 _Avoid_: unknown customer

@@ -1,7 +1,7 @@
 # 0002. 老闆戰情室的 Text-to-SQL 架構
 
 ## 狀態
-Accepted (2026-07-08)。第 1 點（資安與範圍）已由 [ADR-0005](0005-enforce-sql-agent-whitelist-at-execution.md) 修正：`include_tables` 只會隱藏 schema，白名單改為在執行時強制。
+Accepted (2026-07-08)。第 1 點（資安與範圍）已由 [ADR-0005](0005-enforce-sql-agent-whitelist-at-execution.md) 修正：`include_tables` 只會隱藏 schema，白名單改為在執行時強制。第 3 點（表格）已由 [ADR-0008](0008-query-evidence-table-from-sql-result.md) 修正：表格改由後端從最後一句 SQL 的結果產生，LLM 只寫摘要。
 
 實作備註：第 4 點最後改用 LangChain 的 `astream()` 逐步取得 Agent 的工具呼叫與最終輸出（而非 `astream_events()`），串流效果相同。
 
