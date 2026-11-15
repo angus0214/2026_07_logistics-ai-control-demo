@@ -7,7 +7,9 @@
 [![Vue3](https://img.shields.io/badge/Vue.js-3.0-4FC08D?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-🔗 **Live Demo (Vercel Frontend)**: [https://2026-07-logistics-ai-control-demo.vercel.app](https://2026-07-logistics-ai-control-demo.vercel.app)
+🔗 **Live Demo (Vercel Frontend)**: [https://logistics.angus41c.dev](https://logistics.angus41c.dev)（亦可用 [2026-07-logistics-ai-control-demo.vercel.app](https://2026-07-logistics-ai-control-demo.vercel.app)）
+
+🔌 **Backend API (Render)**: [https://logistics-ai-backend-nuhv.onrender.com](https://logistics-ai-backend-nuhv.onrender.com)（API 路徑在 `/api` 底下，例如 `/api/bl_list`）
 
 ---
 
