@@ -41,6 +41,14 @@ def build_agent_input(query: str, current_date: str, dictionary: Optional[str]) 
     return agent_input
 
 
+def action_event(tool_name: str, tool_input) -> dict:
+    """把 Agent 的一次工具呼叫轉成串流事件；執行 SQL 時另帶原始 SQL（前端只讀 data，評估讀 sql）。"""
+    if tool_name == "sql_db_query":
+        sql = tool_input.get("query", str(tool_input)) if isinstance(tool_input, dict) else str(tool_input)
+        return {"event": "thought", "data": f"執行 SQL 查詢: {sql}", "sql": sql}
+    return {"event": "thought", "data": f"正在使用 {tool_name} 分析資料庫結構..."}
+
+
 async def stream_sql_agent(
     query: str,
     engine,
@@ -78,22 +86,8 @@ async def stream_sql_agent(
         # 攔截工具使用 (Thought Process)
         if "actions" in chunk:
             for action in chunk["actions"]:
-                tool_name = action.tool
-                tool_input = action.tool_input
-                
-                if tool_name == "sql_db_query":
-                    # 擷取真實執行的 SQL 語法
-                    query_str = tool_input.get("query", str(tool_input)) if isinstance(tool_input, dict) else str(tool_input)
-                    yield {
-                        "event": "thought",
-                        "data": f"執行 SQL 查詢: {query_str}"
-                    }
-                else:
-                    yield {
-                        "event": "thought",
-                        "data": f"正在使用 {tool_name} 分析資料庫結構..."
-                    }
-                
+                yield action_event(action.tool, action.tool_input)
+
         # 攔截最終產出 (Final Message)
         if "output" in chunk:
             yield {
