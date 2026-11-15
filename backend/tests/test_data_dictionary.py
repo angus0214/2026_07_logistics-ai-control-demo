@@ -40,6 +40,7 @@ REQUIRED_RULES = {
     "unmatched_in_totals",          # 沒指定期間的總額要含 unmatched
     "credit_note_negative",         # Credit Note 算負數
     "customer_is_shipper",          # 客戶＝Shipper
+    "quoted_vs_billed",             # 「請款遠超報價」的門檻
 }
 
 
@@ -50,6 +51,8 @@ def test_dictionary_states_the_business_rules_and_which_table_answers_what(versi
     money_table = {"view": "freight_charges", "raw": "freight_ledger"}[version]
     assert money_table in spec["business_rules"]["freight_means_billed_amount"]
     assert "on_board_date" in spec["business_rules"]["period_by_on_board_date"]
+    # 「運費」是全部費用類型，不能只篩 OF（海運費）
+    assert all(code in spec["business_rules"]["freight_means_billed_amount"] for code in ["OF", "THC", "BAF", "CN"])
     assert "bills_of_lading" in spec["routing"]["shipments"]
     assert money_table in spec["routing"]["money"]
 

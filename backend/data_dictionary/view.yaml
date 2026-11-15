@@ -41,6 +41,8 @@ business_rules:
   freight_means_billed_amount: >-
     沒特別指定的「運費」「請款」「營收」＝ Billed Amount（請款金額），從 freight_charges 計算：
     一張提單的 Billed Amount ＝ 該 bl_number 的 SUM(amount_usd)，單位 USD。
+    「運費」包含所有費用類型（OF、THC、BAF，以及為負數的 CN），不要只篩 OF；
+    只有明確問「海運費」「OF」「附加費」等特定費用時才依費用類型篩選。
     bills_of_lading.freight_cost 是 Quoted Freight（報價運費），只有問「報價」時才用；
     問「請款和報價差多少」才同時用兩者。
   period_by_on_board_date: >-
@@ -58,6 +60,10 @@ business_rules:
     客戶 (Customer) 一律是 Shipper（本 demo 假設全部預付），不是 consignee。
     freight_charges.customer 已對應成和 bills_of_lading.shipper 相同的標準名稱；
     is_unmapped_customer＝1 的列保留原名，問特定客戶時也要考慮它（例如用 LIKE 比對）。
+  quoted_vs_billed: >-
+    正常情況下，報價運費 (freight_cost) 約為該提單 Billed Amount 的 75%–90%，所以請款略高於報價是常態。
+    「請款遠超過報價」「請款異常」指報價不到 Billed Amount 的 50%，
+    也就是 Billed Amount > 2 × freight_cost；要先算出每張提單的 Billed Amount 再比較。
 
 routing:
   shipments: 問提單、貨件數、貨量、重量、目的地、收貨人、報價運費 → bills_of_lading。
