@@ -33,8 +33,8 @@ def seed_data():
 
     with Session(engine) as session:
         for bill in bills:
-            # Billed Amount 屬於運費帳 (ticket 02/03)，不進提單主表
-            fields = {k: v for k, v in bill.items() if k != "billed_amount_usd"}
+            # 目標請款金額只給運費帳產生器用 (ticket 02)，不進提單主表
+            fields = {k: v for k, v in bill.items() if k != "target_billed_usd"}
             session.add(BillOfLading(**fields, is_verified=True))
         session.commit()
 

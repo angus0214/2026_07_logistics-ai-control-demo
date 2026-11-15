@@ -27,7 +27,7 @@ def test_bl_numbers_keep_carrier_prefix_format_and_are_unique():
 
 
 def test_quoted_freight_is_75_to_90_percent_of_billed_except_a_few_underquoted():
-    ratios = [bl["freight_cost"] / bl["billed_amount_usd"] for bl in generate_bills_of_lading()]
+    ratios = [bl["freight_cost"] / bl["target_billed_usd"] for bl in generate_bills_of_lading()]
     underquoted = [r for r in ratios if r < 0.5]
     normal = [r for r in ratios if r >= 0.5]
     # 刻意放 3–4 張「請款遠超報價」的異常，供評估題「哪幾張請款遠超報價」

@@ -20,7 +20,8 @@ def generate_bills_of_lading() -> list[dict]:
     bills = []
     for i in range(BL_COUNT):
         volume = round(rng.uniform(5.0, 65.0), 2)
-        # 先決定 Billed Amount，再反推 Quoted Freight（ticket 01）
+        # 先決定目標請款金額，再反推 Quoted Freight（ticket 01）。實際的 Billed Amount
+        # 以運費帳 Charge Line 換算加總為準（CONTEXT.md），與目標差距不到 1 USD
         billed = round(volume * rng.uniform(90, 170), 2)
         quote_ratio = rng.uniform(0.30, 0.45) if i in underquoted else rng.uniform(0.75, 0.90)
         bills.append({
@@ -31,7 +32,7 @@ def generate_bills_of_lading() -> list[dict]:
             "gross_weight": round(volume * rng.uniform(100, 300), 2),
             "volume": volume,
             "freight_cost": round(billed * quote_ratio, 2),
-            "billed_amount_usd": billed,
+            "target_billed_usd": billed,
             "on_board_date": (FIRST_ON_BOARD_DATE + timedelta(days=rng.randint(0, (LAST_ON_BOARD_DATE - FIRST_ON_BOARD_DATE).days))).isoformat(),
             "confidence_score": rng.randint(85, 100),
         })

@@ -1,4 +1,4 @@
-bl_number,shipper,consignee,destination,gross_weight,volume,freight_cost,billed_amount_usd,on_board_date,confidence_score
+bl_number,shipper,consignee,destination,gross_weight,volume,freight_cost,target_billed_usd,on_board_date,confidence_score
 ONEY35091287,Tesla Logistics,Target Stores,UKLHR (London),7805.67,37.52,3289.25,3840.25,2026-09-06,96
 YMLU83068602,Apple Inc.,MediaMarkt EU,SGSIN (Singapore),2017.3,19.61,1626.31,2139.64,2026-09-30,97
 EGLV25738919,Apple Inc.,Walmart Central,USLAX (Los Angeles),4659.54,30.9,2537.18,3018.33,2026-10-28,90
