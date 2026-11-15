@@ -26,3 +26,6 @@ __pycache__/
 /assets/
 /reference/
 MISSION.md
+
+# 評估逐次明細（大）；報告 .md 會 commit
+backend/evaluation/results/*.json
