@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { marked } from 'marked'
+import { renderMarkdown } from '@/utils/markdown'
 import { LucideSparkles, LucideX, LucideSend, LucideBot, LucideUser } from '@lucide/vue'
 
 const isOpen = ref(false)
@@ -111,7 +111,7 @@ defineExpose({ toggleDrawer, isOpen })
           :class="msg.role === 'user' ? 'bg-zinc-800 text-zinc-100 rounded-tr-sm' : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-300 rounded-tl-sm prose prose-sm prose-invert prose-p:my-0'"
         >
           <template v-if="msg.role === 'user'">{{ msg.content }}</template>
-          <div v-else v-html="marked.parse(msg.content || '')"></div>
+          <div v-else v-html="renderMarkdown(msg.content || '')"></div>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 # 0001. Law Copilot 的 Markdown 渲染
 
 ## 狀態
-Accepted (2026-07-08)
+Accepted (2026-07-08)。第 2 點（不過濾直接 `v-html`）已由 [ADR-0007](0007-sanitize-llm-html-with-dompurify.md) 修正：改為一律以 DOMPurify 過濾。
 
 ## 背景脈絡 (Context)
 Law Copilot 的回覆是 Markdown 格式（例如用粗體強調重點、用清單列出規則、換行）。目前 Vue 3 前端用文字插值 (text interpolation) 直接顯示原始文字，幾乎無法閱讀。我們需要把 Markdown 解析成 HTML、插入 DOM，並在 Tailwind CSS 環境中呈現良好的排版。
