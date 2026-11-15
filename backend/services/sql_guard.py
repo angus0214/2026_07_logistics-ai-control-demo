@@ -118,6 +118,12 @@ class GuardedSQLDatabase(SQLDatabase):
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         **kwargs: Any,
     ):
+        if engine.dialect.name == "sqlite":
+            # 白名單裡有 view（freight_charges），要開 view_support 才看得到。但 LangChain 開了之後
+            # 也會列 materialized view，SQLAlchemy 的 SQLite dialect 沒實作而拋 NotImplementedError。
+            # SQLite 本來就沒有 materialized view，只對這個 engine 回傳空清單。
+            engine.dialect.get_materialized_view_names = lambda *args, **kw: []
+        kwargs.setdefault("view_support", True)
         super().__init__(engine, include_tables=list(include_tables), **kwargs)
         self._allowed_tables = list(include_tables)
         self._max_rows = max_rows

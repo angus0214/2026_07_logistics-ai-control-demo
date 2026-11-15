@@ -68,27 +68,28 @@ parsed AS (
     FROM normalized AS n
 )
 SELECT
+    -- 計算出來的欄位一律 CAST 出型別：沒有型別的 view 欄位會被 LangChain 從 schema 描述中丟掉
     p.BL_NO AS raw_bl_number,
-    p.norm_bl_number AS bl_number,
-    CASE
+    CAST(p.norm_bl_number AS TEXT) AS bl_number,
+    CAST(CASE
         WHEN b.bl_number IS NULL THEN 'unmatched'  -- 對不上的列保留，不丟掉
         WHEN p.BL_NO = b.bl_number THEN 'matched'
         ELSE 'normalized_match'
-    END AS match_status,
+    END AS TEXT) AS match_status,
     p.CUSTOMER AS raw_customer,
-    COALESCE(a.shipper, TRIM(p.CUSTOMER)) AS customer,  -- 沒對到別名：保留原名，不變 NULL
-    CASE WHEN a.shipper IS NULL THEN 1 ELSE 0 END AS is_unmapped_customer,
+    CAST(COALESCE(a.shipper, TRIM(p.CUSTOMER)) AS TEXT) AS customer,  -- 沒對到別名：保留原名，不變 NULL
+    CAST(CASE WHEN a.shipper IS NULL THEN 1 ELSE 0 END AS INTEGER) AS is_unmapped_customer,
     p.CHG_CODE AS charge_code,
-    p.CHG_CODE = 'CN' AS is_credit_note,
+    CAST(p.CHG_CODE = 'CN' AS INTEGER) AS is_credit_note,
     p.AMOUNT AS raw_amount,
-    p.currency,
+    CAST(p.currency AS TEXT) AS currency,
     -- Credit Note 不論原始寫正數、-500 或 (500.00)，一律為負
-    CASE WHEN p.CHG_CODE = 'CN' THEN -p.abs_amount ELSE p.abs_amount END AS amount,
+    CAST(CASE WHEN p.CHG_CODE = 'CN' THEN -p.abs_amount ELSE p.abs_amount END AS REAL) AS amount,
     -- 依發票月份匯率換成 USD；Billed Amount = 同一張提單的 SUM(amount_usd)
-    CASE WHEN p.CHG_CODE = 'CN' THEN -p.abs_amount ELSE p.abs_amount END / f.units_per_usd AS amount_usd,
+    CAST(CASE WHEN p.CHG_CODE = 'CN' THEN -p.abs_amount ELSE p.abs_amount END / f.units_per_usd AS REAL) AS amount_usd,
     p.INV_DATE AS raw_invoice_date,
-    p.invoice_date,
-    b.on_board_date
+    CAST(p.invoice_date AS TEXT) AS invoice_date,
+    CAST(b.on_board_date AS TEXT) AS on_board_date
 FROM parsed AS p
 LEFT JOIN bills AS b ON b.bl_number = p.norm_bl_number
 LEFT JOIN customer_aliases AS a ON a.alias = TRIM(p.CUSTOMER)
