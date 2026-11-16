@@ -5,7 +5,7 @@ from collections import Counter
 import pytest
 
 import evaluation.questions as questions_module
-from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS
+from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS, VALIDATION_BILL_COUNTS, VALIDATION_QUESTIONS
 from evaluation.scoring import Number, Pairs, Value
 
 TRAPS = {"Credit Note", "多幣別", "客戶別名", "Unmatched", "開航日 vs 發票日", "報價 vs 請款", "提單號正規化"}
@@ -71,3 +71,46 @@ def test_holdout_questions_name_explicit_periods():
 def test_highest_quote_question_is_not_the_highest_billed_shipment():
     # 報價最高 (EGLV46945080) 和請款最高 (ONEY83837288) 是不同張，題目才分得出有沒有用對欄位
     assert next(q for q in HOLDOUT_QUESTIONS if q.qid == "H-5").gold == Value("EGLV46945080")
+
+
+# ---- 第二組驗證題 (ticket 10)：只驗證 09 的規則用詞 ----
+
+def _validation(qid):
+    return next(q for q in VALIDATION_QUESTIONS if q.qid == qid)
+
+
+def test_validation_set_is_new_and_names_explicit_periods():
+    used = QUESTIONS + HOLDOUT_QUESTIONS
+    assert len(VALIDATION_QUESTIONS) == 8
+    assert len({q.qid for q in VALIDATION_QUESTIONS}) == 8
+    assert not {q.text for q in VALIDATION_QUESTIONS} & {q.text for q in used}
+    assert not {q.qid for q in VALIDATION_QUESTIONS} & {q.qid for q in used}
+    for q in VALIDATION_QUESTIONS:
+        assert not any(word in q.text for word in ["上個月", "本月", "今年", "去年", "最近"]), q.text
+
+
+def test_validation_set_covers_both_failure_modes_of_the_rule():
+    counts = Counter(q.trap for q in VALIDATION_QUESTIONS)
+    assert counts["只問總數"] >= 2 and counts["同一句算好"] >= 2
+    assert set(counts) == {"只問總數", "同一句算好"}
+
+
+@pytest.mark.parametrize("qid", ["V-1", "V-2", "V-3", "V-4", "V-5"])
+def test_single_total_questions_span_several_bills_so_a_breakdown_is_scored_wrong(qid):
+    # 拆成每張提單（或每個客戶）一列就不只一列，Number 判分必錯，題目才有鑑別力
+    q = _validation(qid)
+    assert q.trap == "只問總數" and isinstance(q.gold, Number)
+    assert VALIDATION_BILL_COUNTS[qid] >= 2
+
+
+@pytest.mark.parametrize("qid, gold, parts", [
+    ("V-6", 12520.50 - 13189.59, (12520.50, 13189.59)),       # Apple 10 月減 9 月
+    ("V-7", 13415.45 / 93808.13 * 100, (13415.45, 93808.13)),  # Nvidia 占 9 月運費
+    ("V-8", 13415.45 - 8789.65, (13415.45, 8789.65)),          # Nvidia 比 TSMC（9 月）
+])
+def test_computed_answers_differ_from_either_half(qid, gold, parts):
+    # 分兩句查、最後一句只剩其中一半時，答案一定對不上
+    q = _validation(qid)
+    assert q.trap == "同一句算好" and isinstance(q.gold, Number)
+    assert q.gold.value == pytest.approx(gold, abs=0.01)
+    assert all(abs(q.gold.value - part) > 1 for part in parts)

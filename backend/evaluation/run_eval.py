@@ -21,7 +21,7 @@ from typing import Optional
 
 from db.database import create_readonly_engine
 from evaluation.database import build_eval_db
-from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS, Question
+from evaluation.questions import HOLDOUT_QUESTIONS, QUESTIONS, VALIDATION_QUESTIONS, Question
 from evaluation.scoring import score
 from services.sql_agent_service import WAR_ROOM_ARM, Arm, stream_sql_agent
 from services.sql_guard import run_guarded_query
@@ -35,6 +35,7 @@ ARMS = {
 QUESTION_SETS = {
     "main": QUESTIONS,             # 20 題評估集 (ticket 06)
     "holdout": HOLDOUT_QUESTIONS,  # 6 題驗證題 (ticket 07)
+    "validation": VALIDATION_QUESTIONS,  # 8 題第二組驗證題，只驗證 09 (ticket 10)
 }
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 MODEL = "gpt-4o-mini"  # 與 services/sql_agent_service.py 一致

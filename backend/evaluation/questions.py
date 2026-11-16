@@ -146,3 +146,42 @@ HOLDOUT_QUESTIONS = [
     Question("H-6", "多步：比較", "2026 年 8、9、10 月中，哪個月開航的貨件請款總額比報價總額多最多？請以 YYYY-MM 表示。",
              Value(max(_gap_by_month, key=_gap_by_month.get))),
 ]
+
+
+# ---- 第二組驗證題 (ticket 10)：只驗證 09 的規則用詞 ----
+# 09 之後 H 題組與原 20 題都已用過，不能再拿來證明修好了。這組在看到 09 的結果之前固定下來，
+# 只考 09 要修的兩件事：只問一個總數時不要拆成明細；差額、比例要在同一句算好。
+# 刻意避開「JOIN 後加總提單欄位」與「報價」：這兩個是已知限制（08 wontfix），不出題證明修好。
+
+def _bill_count(lines) -> int:
+    return len({line["bl_number"] for line in lines})
+
+
+_sep_lines = _shipped_in("2026-09")
+_validation_lines = {
+    "V-1": _of("TSMC Export", _shipped_in("2026-08")),
+    "V-2": _of("Apple Inc.", _sep_lines),
+    "V-3": _of("Samsung Electronics", _shipped_in("2026-08") + _sep_lines + _oct_lines),
+    "V-4": _sep_lines,
+    "V-5": _of("Samsung Electronics", _sep_lines) + _of("TSMC Export", _sep_lines),
+}
+VALIDATION_BILL_COUNTS = {qid: _bill_count(lines) for qid, lines in _validation_lines.items()}
+
+VALIDATION_QUESTIONS = [
+    Question("V-1", "只問總數", "TSMC Export 2026 年 8 月開航貨件的運費是多少？",
+             Number(_usd(_validation_lines["V-1"]))),
+    Question("V-2", "只問總數", "Apple Inc. 2026 年 9 月開航貨件的運費總共多少？",
+             Number(_usd(_validation_lines["V-2"]))),
+    Question("V-3", "只問總數", "Samsung Electronics 在 2026 年 8 到 10 月開航的貨件，運費加起來是多少？",
+             Number(_usd(_validation_lines["V-3"]))),
+    Question("V-4", "只問總數", "2026 年 9 月開航的貨件，運費總額是多少？",
+             Number(_usd(_validation_lines["V-4"]))),
+    Question("V-5", "只問總數", "2026 年 9 月開航的貨件中，Samsung Electronics 和 TSMC Export 的運費合計是多少？",
+             Number(_usd(_validation_lines["V-5"]))),
+    Question("V-6", "同一句算好", "Apple Inc. 2026 年 10 月開航貨件的運費，減掉 2026 年 9 月的，差多少？",
+             Number(round(_usd(_of("Apple Inc.", _oct_lines)) - _usd(_validation_lines["V-2"]), 2))),
+    Question("V-7", "同一句算好", "2026 年 9 月開航貨件的運費中，Nvidia Corp 占多少百分比？（例如 12.34）",
+             Number(round(_usd(_of("Nvidia Corp", _sep_lines)) / _usd(_sep_lines) * 100, 2))),
+    Question("V-8", "同一句算好", "2026 年 9 月開航的貨件，Nvidia Corp 的運費比 TSMC Export 多多少？",
+             Number(round(_usd(_of("Nvidia Corp", _sep_lines)) - _usd(_of("TSMC Export", _sep_lines)), 2))),
+]
