@@ -35,7 +35,7 @@ def build_agent_input(query: str, current_date: str, dictionary: Optional[str]) 
         f"1. 今天的日期是 {current_date}。若查詢中提到「今年」，請以此年份為基準。\n"
         f"2. 查詢字串型態的欄位 (例如 destination, shipper) 時，請一律優先使用 `LIKE '%關鍵字%'` 進行模糊比對。因為資料庫中的值常帶有額外括號或全名，例如 'USLAX (Los Angeles)'。\n"
         f"3. 請務必使用「繁體中文 (zh-TW)」回答。若是金額或數量，請加上適當的單位 (如公斤、USD) 以利閱讀。\n"
-        f"4. 最後一句 SQL 的結果就是答案本身：問一個總數就只回傳那個總數，問哪一張就回傳那一張；差額、比例要在同一句裡算好，不要分多句查完再自己計算；不要拆成明細，也不要加上沒被問到的欄位。"
+        f"4. 最後執行的那一句 SQL 必須單獨就能回答整個問題：差額、比例、比較都要在同一句 SQL 裡算好，不要分多句查完再自己計算，因為使用者會看到這句 SQL 的結果表格。"
     )
     if dictionary:
         agent_input += f"\n\n請依照下列資料字典的欄位意義與業務規則撰寫 SQL。\n[資料字典]\n{dictionary}"
