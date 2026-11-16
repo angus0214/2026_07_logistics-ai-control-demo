@@ -72,7 +72,34 @@ npm run dev
 * **RAG 相關規定知識庫問答**：結合 ChromaDB 向量庫，業務可以直接詢問副駕：「這份提單的卸貨港在哪裡？」，AI 將根據文件內容給予精準答覆。
 
 ### 2. Boss Dashboard
-* **Text-to-SQL**：管理層可直接在對話框輸入：「*幫我查一下前 5 筆金額最高的提單*」，SQL Agent 會自動分析資料表結構、轉譯為 SQL 語法、查詢 SQLite，並以自然語言回報結果。
+* **Text-to-SQL**：管理層可直接在對話框輸入：「*2026 年 10 月各客戶的運費分別是多少？*」（戰情室的預設問題），SQL Agent 會自動分析資料表結構、轉譯為 SQL 語法、查詢 SQLite，並以自然語言回報結果。
+* **處理真實資料**：運費帳模擬財務匯出檔的髒資料（客戶別名、多幣別、Credit Note 沖銷、提單號寫法不一、對不上提單的費用）。原樣載入後由 `freight_charges` view 統一整理，並把資料字典（[`backend/data_dictionary/`](backend/data_dictionary/)）注入提示，告訴 Agent 每個欄位的業務意義。
+* **安全**：唯讀連線，且在執行期以 sqlglot 白名單檢查每一句 SQL，另有 200 列上限、5 秒逾時與步數限制（[ADR-0005](docs/adr/0005-enforce-sql-agent-whitelist-at-execution.md)）。
+* **查詢依據**：每個回答下方附上 Agent 最後一句 SQL 的原始結果表格，數字不經 LLM 轉抄（[ADR-0008](docs/adr/0008-query-evidence-table-from-sql-result.md)）。
+
+### 戰情室評估結果（可量測）
+
+用固定的評估集量測 SQL Agent。判分方式：在獨立的評估資料庫重跑 Agent 最後一句 SQL，結果與從乾淨原始資料算出的標準答案比對，不用 LLM 評審（[ADR-0006](docs/adr/0006-score-eval-by-sql-execution-result.md)）。模型 gpt-4o-mini，每題每組跑 3 次。三個對照組：
+
+* **Raw**：只給原樣載入的髒資料表。
+* **Raw + Dictionary**：髒資料表＋資料字典。
+* **View + Dictionary**：整理過的 `freight_charges` view＋資料字典（線上戰情室的設定）。
+
+| 題組 | Raw | Raw + Dictionary | View + Dictionary |
+|---|---|---|---|
+| 主評估集 20 題（7 種陷阱＋6 題只查提單主表的對照題） | 24/60（40%） | 20/60（33%） | **46/60（77%）** |
+| 第二組驗證題 8 題（運費總數、差額、比例） | 0/24（0%） | 0/24（0%） | **22/24（92%）** |
+
+* 只給資料字典沒有幫助；把髒資料整理成 view 才是關鍵。
+* 每一輪修正都用沒看過的題目驗證，不用找出問題的那組題目證明修好了。例如曾試著改寫「最後一句 SQL 要單獨回答整個問題」的規則用詞，在新題目上從 92% 掉到 50%，因此退回原用詞（記錄在 ADR-0008）。
+* 報告：[主評估集](backend/evaluation/results/2026-11-15_1706.md)、[第二組驗證題](backend/evaluation/results/2026-11-16_1400_validation_pre09.md)、[規則試改的量測](backend/evaluation/results/2026-11-16_1359_validation.md)。重跑方式：`cd backend && python -m evaluation.run_eval --set main`（題組：`main`、`holdout`、`validation`）。
+
+### 已知限制與下一步
+
+* **JOIN 後重複加總 (fan-out)**：把運費帳（一張提單多筆費用）JOIN 提單主表後，再加總提單上的欄位（例如報價運費），會被重複計算。下一步是新增 `shipment_billing` view：一張提單一列，報價與請款並排，讓 Agent 不需要自己 JOIN。
+* **「報價」被當成請款**：問「報價運費」時，Agent 有時會加總運費帳的請款金額，而不是提單上的 `freight_cost`。同樣由 `shipment_billing` 把兩個欄位並排、名稱分開來解決。
+* **把總數拆成明細，或自行加篩選**：只問一個總數時，Agent 偶爾會 `GROUP BY` 拆成多列，或自行只算部分費用代碼。試過改寫規則用詞，量測後反而更差，已退回。
+* **判分只看最後一句 SQL**：Agent 分多句查、最後自己心算時，即使摘要正確也會被判錯；反過來，SQL 對但摘要寫錯數字，仍判為正確。
 
 ### 3. Data Flywheel
 * **Bad Case 收集**：當 AI (OCR) 辨識結果有誤，且經由業務端人工覆核修改後，系統會自動將該筆紀錄標記為 Bad Case，並連同原始圖片與錯誤輸出，獨立寫入資料庫。
