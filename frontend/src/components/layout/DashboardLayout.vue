@@ -78,7 +78,7 @@ const isRightPanelOpen = ref(false)
       v-if="!hideRightSidebar" 
       :class="[
         'border-l border-zinc-800/60 bg-zinc-950 flex flex-col z-50 transition-transform duration-300 ease-in-out',
-        'xl:relative xl:w-[500px] xl:translate-x-0 xl:shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]', // Desktop
+        'xl:relative xl:z-auto xl:w-[500px] xl:translate-x-0 xl:shadow-[-4px_0_24px_-12px_rgba(0,0,0,0.5)]', // Desktop
         isRightPanelOpen ? 'fixed inset-0 translate-x-0 w-full' : 'fixed inset-y-0 right-0 translate-x-full w-full xl:translate-x-0' // Mobile
       ]"
     >
