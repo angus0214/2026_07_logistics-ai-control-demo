@@ -116,7 +116,7 @@ interface ChatMessage {
   result?: QueryResult
 }
 
-const query = ref('幫我統計今年運往 USLAX (Los Angeles) 的總重量是多少？')
+const query = ref('2026 年 10 月各客戶的運費分別是多少？')
 const isLoading = ref(false)
 const thoughts = ref<string[]>([])
 const messages = ref<ChatMessage[]>([])
